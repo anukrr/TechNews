@@ -1,0 +1,41 @@
+# local setup files
+venv
+.venv
+.env
+.terraform
+terraform.tfvars
+terraform.tfstate
+terraform.tfstate.backup
+.terraform.lock.hcl
+terraform.tfstate
+terraform.tfstate.backup
+
+# associated data outputs
+*.csv
+*.json
+
+# misc
+.DS_Store
+__pytest_cache__
+__pycache__
+.pytest_cache
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+.ipynb_checkpoints
+
+# Created by git when using merge tools for conflicts
+*.BACKUP.*
+*.BASE.*
+*.LOCAL.*
+*.REMOTE.*
+*_BACKUP_*.txt
+*_BASE_*.txt
+*_LOCAL_*.txt
+*_REMOTE_*.txt
+
+# MacOS general
+.DS_Store
+.AppleDouble
+.LSOverride
