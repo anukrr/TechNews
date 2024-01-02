@@ -1,5 +1,4 @@
 """This script extracts story information from the Hacker News API."""
-
 import pandas as pd
 from requests import get
 
@@ -30,7 +29,7 @@ def main() -> None:
         all_stories.append(extract_story_info(id))
 
     stories_df = pd.DataFrame(all_stories)
-    stories_df.to_csv("all_stories.csv")
+    stories_df.to_csv("all_stories.csv", index=False)
 
 
 if __name__ == "__main__":
