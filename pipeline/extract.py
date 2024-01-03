@@ -23,11 +23,11 @@ def extract_story_info(story_id: int) -> dict:
 
 def main() -> None:
     """Collects information on the 200 top stories and stores it in a csv file."""
-    all_stories = []
     story_ids = get_top_stories(STORY_COUNT)
 
-    for id in story_ids:
-        all_stories.append(extract_story_info(id))
+    all_stories = [extract_story_info(id) for id in story_ids]
+    # for id in story_ids:
+    #     all_stories.append(extract_story_info(id))
 
     stories_df = pd.DataFrame(all_stories)
     stories_df.to_csv("all_stories.csv", index=False)
