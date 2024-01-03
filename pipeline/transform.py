@@ -45,6 +45,7 @@ def generate_topic(story_url: str) -> str:
 def clean_dataframe(stories_df: pd.DataFrame) -> pd.DataFrame:
     """Formats the dataframe correctly and removes invalid entries."""
     stories_df["time"] = pd.to_datetime(stories_df["time"], unit="s")
+    stories_df['descendants'] = stories_df['descendants'].fillna(0).astype(int)
     stories_df = stories_df.rename(columns={"descendants": "comments",
                                             "by": "author",
                                             "time": "creation_date",
