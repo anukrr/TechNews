@@ -1,4 +1,4 @@
-"""This script cleans the data collected from the Hacker News API."""
+"""This script cleans & builds upon the data collected from the Hacker News API."""
 from os import environ
 from dotenv import load_dotenv
 import pandas as pd
