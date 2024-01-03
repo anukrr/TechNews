@@ -30,3 +30,9 @@ CREATE TABLE records (
     REFERENCES stories(story_id)
     ON DELETE CASCADE
   );
+
+
+CREATE TABLE topics (
+  topic_id INT GENERATED ALWAYS AS IDENTITY,
+  topic_name VARCHAR(100) NOT NULL,
+)
