@@ -11,15 +11,7 @@ def get_top_stories(count: int) -> list:
     """Returns the ids of the top 200 stories on Hacker News."""
     top_stories = get(BASE_URL + "topstories.json", timeout=100).json()
     return top_stories[:count]
-
-# story_id INT,
-#   title VARCHAR(250) NOT NULL,
-#   author VARCHAR(100) NOT NULL,
-#   story_url VARCHAR(500),
-#   creation_date
-# score
-# comments
-
+    
 
 def extract_story_info(story_id: int) -> dict:
     """Finds the details of a given story on Hacker News based on the story id."""
