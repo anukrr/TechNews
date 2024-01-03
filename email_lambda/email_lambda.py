@@ -18,8 +18,17 @@ def get_db_connection():
         return conn
     except Exception as e:
         print(f'Error: Unable to form connection {e}')
-    finally:
-        conn.close()
+
+
+def load_data():
+    conn = get_db_connection()
+    with conn.cursor() as curr:
+        curr.execute('SELECT * FROM stories;')
+        data = curr.fetchall()
+        df = pd.DataFrame(data)
+        curr.close()
+    return df
+
 
 list_of_url=["https://cachemon.github.io/SIEVE-website/blog/2023/12/17/sieve-is-simpler-than-lru/",
 "https://fixmyblinds.com/",
@@ -107,7 +116,7 @@ def generate_html_string() -> str:
     for article in dict_of_summary:
         title = article.get('article_title')
         summary = article.get('summary')
-        article_box = f"""<body style="border-width:3px; border-style:solid; border-color:#E6E6FA; border-radius: 12px; padding: 20px;">
+        article_box = f"""<body style="border-width:3px; border-style:solid; border-color:#E6E6FA; border-radius: 12px; padding: 20px; border-spacing: 10px 2em;">
         <h2 style="color: #008B8B;"> {title}</h2>
         <p style="color:#6495ED"> {summary} </p> </body>"""
         articles_list.append(article_box)
@@ -125,5 +134,12 @@ def generate_html_string() -> str:
 #     return None
 load_dotenv()
 
-html_str=generate_html_string()
-send_email(html_str)
+
+
+df = load_data()
+print(df[3])
+today_date = date.today()
+list_of_url = [url for url in df[3]]
+# print(list_of_url)
+# html_str=generate_html_string()
+# send_email(html_str)
