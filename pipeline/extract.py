@@ -12,12 +12,22 @@ def get_top_stories(count: int) -> list:
     top_stories = get(BASE_URL + "topstories.json", timeout=100).json()
     return top_stories[:count]
 
+# story_id INT,
+#   title VARCHAR(250) NOT NULL,
+#   author VARCHAR(100) NOT NULL,
+#   story_url VARCHAR(500),
+#   creation_date
+# score
+# comments
+
 
 def extract_story_info(story_id: int) -> dict:
     """Finds the details of a given story on Hacker News based on the story id."""
-    story_info = get(BASE_URL + "item/" + str(story_id) + ".json", timeout=100).json()
-    relevant_cols = ["id", "type", "by", "time", "url", "score", "title", "descendants"]
-    story_dict = {col : story_info.get(col) for col in relevant_cols}
+    story_info = get(BASE_URL + "item/" + str(story_id) +
+                     ".json", timeout=100).json()
+    relevant_cols = ["id", "title", "by", "url",
+                     "time", "score", "descendants", "type"]
+    story_dict = {col: story_info.get(col) for col in relevant_cols}
     return story_dict
 
 
