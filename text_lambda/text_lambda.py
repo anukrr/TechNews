@@ -26,7 +26,7 @@ def check_viral_article():
 def send_email(article_title:str):
     '''Sends an SMS if viral article is detected.'''
     try:
-        client = boto3.client('ses', region_name='eu-west-2', aws_access_key_id=environ["ACCESS_KEY_ID"],
+        client = boto3.client('sns', region_name='eu-west-2', aws_access_key_id=environ["ACCESS_KEY_ID"],
                             aws_secret_access_key=environ["SECRET_ACCESS_KEY"])
         response = client.publish(
             PhoneNumber=environ["PHONE_NUMBER"],
