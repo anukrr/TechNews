@@ -6,11 +6,12 @@ import pandas as pd
 from openai import OpenAI
 from pandarallel import pandarallel
 
+
 load_dotenv()
-VALID_TOPICS = ("1","2","3","4","5","6","7","8","9","10","11")
+
+VALID_TOPIC_IDS = ("1","2","3","4","5","6","7","8","9","10","11")
 
 pandarallel.initialize(progress_bar=True)
-
 
 client = OpenAI(
     api_key = environ["OPENAI_API_KEY"]
@@ -18,6 +19,7 @@ client = OpenAI(
 
 
 def generate_topic(story_url: str) -> str:
+    """Finds the most suitable topic for a url from a predefined list of topics with the OpenAI API."""
     completion = client.chat.completions.create(
     model="gpt-3.5-turbo",
     messages=[
@@ -36,9 +38,7 @@ def generate_topic(story_url: str) -> str:
          11. Miscellaneous & Interesting Facts"""},
         {"role": "user",
          "content": f"""Categorise this url into one of the listed categories: {story_url}.
-         Only state the category number and nothing else. Ensure your only output is a number."""}
-    ]
-    )
+         Only state the category number and nothing else. Ensure your only output is a number."""}])
     return completion.choices[0].message.content
 
 
@@ -52,10 +52,8 @@ def clean_dataframe(stories_df: pd.DataFrame) -> pd.DataFrame:
     stories_df = stories_df[stories_df.type == "story"]
     stories_df = stories_df.drop(columns="type")
     stories_df["topic_id"] = stories_df["story_url"].parallel_apply(generate_topic)
-    stories_df.loc[~stories_df["topic_id"].isin(VALID_TOPICS), "topic_id"] = None
-    
+    stories_df.loc[~stories_df["topic_id"].isin(VALID_TOPIC_IDS), "topic_id"] = None
     return stories_df
-
 
 
 if __name__ == "__main__":
