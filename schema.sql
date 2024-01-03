@@ -12,7 +12,7 @@ CREATE TABLE stories (
   story_id INT, 
   title VARCHAR(250) NOT NULL,
   author VARCHAR(100) NOT NULL,
-  story_url VARCHAR(500) NOT NULL,
+  story_url VARCHAR(500),
   creation_date TIMESTAMP NOT NULL,
   PRIMARY KEY (story_id)
   );
