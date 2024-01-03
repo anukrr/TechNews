@@ -4,12 +4,13 @@ from requests import get
 
 
 BASE_URL = "https://hacker-news.firebaseio.com/v0/"
+STORY_COUNT = 200
 
 
-def get_top_stories() -> list:
+def get_top_stories(count: int) -> list:
     """Returns the ids of the top 200 stories on Hacker News."""
     top_stories = get(BASE_URL + "topstories.json", timeout=100).json()
-    return top_stories[:200]
+    return top_stories[:count]
 
 
 def extract_story_info(story_id: int) -> dict:
@@ -23,7 +24,7 @@ def extract_story_info(story_id: int) -> dict:
 def main() -> None:
     """Collects information on the 200 top stories and stores it in a csv file."""
     all_stories = []
-    story_ids = get_top_stories()
+    story_ids = get_top_stories(STORY_COUNT)
 
     for id in story_ids:
         all_stories.append(extract_story_info(id))
