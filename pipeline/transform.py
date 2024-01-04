@@ -1,4 +1,6 @@
 """This script cleans & builds upon the data collected from the Hacker News API."""
+# pylint: disable=line-too-long
+
 from os import environ
 from dotenv import load_dotenv
 import pandas as pd
@@ -7,20 +9,14 @@ from openai import OpenAI
 from pandarallel import pandarallel
 
 
-load_dotenv()
-
 VALID_TOPIC_IDS = ("1","2","3","4","5","6","7","8","9","10","11")
 
 pandarallel.initialize(progress_bar=True)
 
-client = OpenAI(
-    api_key = environ["OPENAI_API_KEY"]
-)
 
-
-def generate_topic(story_url: str) -> str:
+def generate_topic(story_url: str, ai_client) -> str:
     """Finds the most suitable topic for a url from a predefined list of topics with the OpenAI API."""
-    completion = client.chat.completions.create(
+    completion = ai_client.chat.completions.create(
     model="gpt-3.5-turbo",
     messages=[
         {"role": "system",
@@ -42,7 +38,7 @@ def generate_topic(story_url: str) -> str:
     return completion.choices[0].message.content
 
 
-def clean_dataframe(stories_df: pd.DataFrame) -> pd.DataFrame:
+def clean_dataframe(stories_df: pd.DataFrame, client) -> pd.DataFrame:
     """Formats the dataframe correctly and removes invalid entries."""
     stories_df["time"] = pd.to_datetime(stories_df["time"], unit="s")
     stories_df['descendants'] = stories_df['descendants'].fillna(0).astype(int)
@@ -52,7 +48,7 @@ def clean_dataframe(stories_df: pd.DataFrame) -> pd.DataFrame:
                                             "url": "story_url"})
     stories_df = stories_df[stories_df.type == "story"]
     stories_df = stories_df.drop(columns="type")
-    stories_df["topic_id"] = stories_df["story_url"].parallel_apply(generate_topic)
+    stories_df["topic_id"] = stories_df["story_url"].parallel_apply(generate_topic, args=(client,))
     stories_df.loc[~stories_df["topic_id"].isin(VALID_TOPIC_IDS), "topic_id"] = None
     stories_df['topic_id'] = stories_df['topic_id'].fillna(0).astype(int)
 
@@ -60,7 +56,11 @@ def clean_dataframe(stories_df: pd.DataFrame) -> pd.DataFrame:
 
 
 if __name__ == "__main__":
+    load_dotenv()
+    CLIENT = OpenAI(
+    api_key = environ["OPENAI_API_KEY"]
+)
 
     story_df = pd.read_csv("all_stories.csv", index_col=False)
-    clean_stories = clean_dataframe(story_df)
+    clean_stories = clean_dataframe(story_df, CLIENT)
     clean_stories.to_csv("clean_all_stories.csv", index=False)

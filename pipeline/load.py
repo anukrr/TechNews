@@ -8,7 +8,6 @@ from dotenv import load_dotenv
 
 def get_db_connection():
     """Returns a database connection."""
-    load_dotenv()
     try:
         connection = connect(
             host=environ["DB_HOST"],
@@ -22,7 +21,7 @@ def get_db_connection():
         return {'error': 'Unable to connect to the database.'}
 
 
-def upload_latest_data(df: pd.DataFrame) -> None:
+def upload_latest_data(df: pd.DataFrame, connection) -> None:
     """Gets stories and records data from dataframe. Uploads it to database tables.
     If story is already in story table then values are updated with latest version.
     """
@@ -45,23 +44,26 @@ def upload_latest_data(df: pd.DataFrame) -> None:
             ;
             """
 
-    conn = get_db_connection()
 
-    with conn.cursor() as cursor:
+    with connection.cursor() as cursor:
         stories_columns = df[["id","title","author","story_url","creation_date", "topic_id"]]
         stories_insert = stories_columns.values.tolist()
 
         records_columns = df[["id", "score", "comments"]]
         records_insert = records_columns.values.tolist()
-        
+
         # execute_values is a faster option if necessary, but you have to rework the query etc.
         cursor.executemany(
             story_query, stories_insert)
         cursor.executemany(
             record_query, records_insert)
-        conn.commit()
+        connection.commit()
 
 
 if __name__ == "__main__":
+    load_dotenv()
+
     data = pd.read_csv('clean_all_stories.csv')
-    upload_latest_data(data)
+    conn = get_db_connection()
+
+    upload_latest_data(data, conn)
