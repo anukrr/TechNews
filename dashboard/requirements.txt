@@ -1,11 +1,7 @@
 requests
-pylint
 pytest
 pytest-cov
 pandas
 python-dotenv
-boto3
-pymssql
 streamlit
 altair
-sqlalchemy
