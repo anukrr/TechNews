@@ -29,7 +29,8 @@ def load_data():
         curr.close()
     return df
 
-
+def get_list_of_url():
+    pass
 list_of_url=["https://cachemon.github.io/SIEVE-website/blog/2023/12/17/sieve-is-simpler-than-lru/",
 "https://fixmyblinds.com/",
 "https://www.oreilly.com/library/view/50-algorithms-every/9781803247762/",
@@ -37,6 +38,7 @@ list_of_url=["https://cachemon.github.io/SIEVE-website/blog/2023/12/17/sieve-is-
 "https://blog.cr.yp.to/20240102-hybrid.html"]
 
 def summarise_story(url_list:list[str]):
+    '''Uses OpenAI lambda function to generate .'''
     client = OpenAI(api_key=environ["OPENAI_API_KEY"])
     response = client.chat.completions.create(
         model="gpt-3.5-turbo",
@@ -49,20 +51,8 @@ def summarise_story(url_list:list[str]):
     article_summary = response.choices[0].message.content.strip()
     return article_summary
 
-
-def get_article_title(url: str):
-    client = OpenAI(api_key=environ["OPENAI_API_KEY"])
-    response = client.chat.completions.create(
-        model="gpt-3.5-turbo",
-        messages=[
-            {"role": "system", "content": "You are a newsletter writer."},
-            {"role": "user", "content": f"Return title for the article at this {url}"}
-        ],
-        temperature=0.5
-    )
-    title = response.choices[0].message.content.strip()
-    return title
 def send_email(html_string:str):
+    '''Sends email newsletter using generated html string.'''
     today = date.today()
     today_date = today.strftime("%B %d")
     # email_html = generate_html_string(top_10_articles)
@@ -91,7 +81,7 @@ def send_email(html_string:str):
     return response
 
 def generate_html_string() -> str:
-    """Generates HTML string for the email"""
+    '''Generates HTML string for the email.'''
     summary = summarise_story(list_of_url)
     dict_of_summary = json.loads(f"{summary}")
     html_start = f"""<html>
@@ -124,22 +114,14 @@ def generate_html_string() -> str:
     html_full = html_start + articles_string + html_end
     return html_full
 
-# def handler(event=None, context=None):
-#     load_dotenv()
-#     connection = get_db_connection()
-#     df = load_all_data(connection)
-#     unhealthy_plants = check_plant_vitals(df)
-#     if unhealthy_plants != []:
-#         return send_email(unhealthy_plants)
-#     return None
-load_dotenv()
+def handler(event=None, context=None):
+    load_dotenv()
+    df = load_data()
+    html_string = generate_html_string()
+    if html_string != []:
+        return send_email(html_string)
+    return None
 
-
-
-df = load_data()
-print(df[3])
-today_date = date.today()
-list_of_url = [url for url in df[3]]
-# print(list_of_url)
-# html_str=generate_html_string()
-# send_email(html_str)
+# load_dotenv()
+# # html_str=generate_html_string()
+# # send_email(html_str)

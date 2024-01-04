@@ -16,14 +16,13 @@ def get_db_connection():
         return conn
     except Exception as e:
         print(f'Error: Unable to form connection {e}')
-    finally:
-        conn.close()
+
 
 def check_viral_article():
     '''Checks for viral articles.'''
     pass
 
-def send_email(article_title:str):
+def send_text(article_title:str):
     '''Sends an SMS if viral article is detected.'''
     try:
         client = boto3.client('sns', region_name='eu-west-2', aws_access_key_id=environ["ACCESS_KEY_ID"],
