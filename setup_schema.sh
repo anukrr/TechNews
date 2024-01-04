@@ -1,0 +1,1 @@
+psql -h c9-tech-news-db.c57vkec7dkkx.eu-west-2.rds.amazonaws.com -p 5432 -U postgres -f schema.sql 
