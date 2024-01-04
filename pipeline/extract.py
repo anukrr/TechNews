@@ -29,6 +29,7 @@ def extract_story_info(story_id: int) -> dict:
         return story_dict
     except exceptions.RequestException as e:
          print(f"Error extracting story information {e}")
+         raise
 
 
 def main() -> None:

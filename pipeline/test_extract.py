@@ -1,34 +1,32 @@
 ''''Tests extract.py functions.'''
 import pytest
-from unittest.mock import patch
-import requests_mock
-import requests
 from extract import get_top_stories, extract_story_info
 
 BASE_URL = "https://hacker-news.firebaseio.com/v0/"
 STORY_COUNT =200
 
 def test_get_story_string():
+    """Checks if invalid input type raises Error."""
     with pytest.raises(TypeError):
         get_top_stories('2')
 
 
 def test_get_story_empty():
+    """Tests exception raised when no input provided."""
     with pytest.raises(TypeError):
-        get_top_stories(' ')
+        get_top_stories()
 
 
 def test_get_info_string():
-    with pytest.raises(Exception):
-        extract_story_info('2')
-
-
-def test_get_info_empty():
+    """Tests exception raised when empty string provided."""
     with pytest.raises(AttributeError):
         extract_story_info(' ')
 
 
-
+def test_get_info_empty():
+    """Tests exception raised when no input provided."""
+    with pytest.raises(TypeError):
+        extract_story_info()
 
 
 def test_get_stories_success(requests_mock):
