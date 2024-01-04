@@ -23,19 +23,18 @@ def get_db_connection():
 def load_data():
     conn = get_db_connection()
     with conn.cursor() as curr:
-        curr.execute('SELECT * FROM stories;')
+        curr.execute('SELECT * FROM records r JOIN stories s ON r.story_id = s.story_id ORDER BY r.score DESC LIMIT 5;')
         data = curr.fetchall()
         df = pd.DataFrame(data)
+        column_names = [desc[0] for desc in curr.description]
+        df.columns = column_names
         curr.close()
     return df
 
-def get_list_of_url():
-    pass
-list_of_url=["https://cachemon.github.io/SIEVE-website/blog/2023/12/17/sieve-is-simpler-than-lru/",
-"https://fixmyblinds.com/",
-"https://www.oreilly.com/library/view/50-algorithms-every/9781803247762/",
-"https://arxiv.org/abs/2312.17661",
-"https://blog.cr.yp.to/20240102-hybrid.html"]
+
+def get_url_list():
+    df = load_data()
+    return df['story_url'].to_list()
 
 def summarise_story(url_list:list[str]):
     '''Uses OpenAI lambda function to generate .'''
@@ -82,7 +81,8 @@ def send_email(html_string:str):
 
 def generate_html_string() -> str:
     '''Generates HTML string for the email.'''
-    summary = summarise_story(list_of_url)
+    url_list = get_url_list()
+    summary = summarise_story(url_list)
     dict_of_summary = json.loads(f"{summary}")
     html_start = f"""<html>
     <head>
@@ -116,12 +116,6 @@ def generate_html_string() -> str:
 
 def handler(event=None, context=None):
     load_dotenv()
-    df = load_data()
-    html_string = generate_html_string()
-    if html_string != []:
-        return send_email(html_string)
-    return None
+    html_str = generate_html_string()
+    return send_email(html_str)
 
-# load_dotenv()
-# # html_str=generate_html_string()
-# # send_email(html_str)
