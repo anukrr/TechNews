@@ -22,8 +22,10 @@ def get_db_connection():
         return {'error': 'Unable to connect to the database.'}
 
 
-def upload_stories(df: pd.DataFrame) -> None:
-    """Gets stories and records data from dataframe. Uploads it to database tables."""
+def upload_latest_data(df: pd.DataFrame) -> None:
+    """Gets stories and records data from dataframe. Uploads it to database tables.
+    If story is already in story table then values are updated with latest version.
+    """
 
     story_query = """
             INSERT INTO stories
@@ -44,17 +46,17 @@ def upload_stories(df: pd.DataFrame) -> None:
             """
 
     conn = get_db_connection()
-    with conn.cursor() as cursor:
 
+    with conn.cursor() as cursor:
         stories_columns = df[["id","title","author","story_url","creation_date"]]
         stories_insert = stories_columns.values.tolist()
 
         records_columns = df[["id", "score", "comments"]]
         records_insert = records_columns.values.tolist()
+        
         # execute_values is a faster option if necessary, but you have to rework the query etc.
         cursor.executemany(
             story_query, stories_insert)
-
         cursor.executemany(
             record_query, records_insert)
         conn.commit()
@@ -62,4 +64,4 @@ def upload_stories(df: pd.DataFrame) -> None:
 
 if __name__ == "__main__":
     data = pd.read_csv('clean_all_stories.csv')
-    upload_stories(data)
+    upload_latest_data(data)
