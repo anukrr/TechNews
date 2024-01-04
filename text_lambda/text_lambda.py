@@ -42,3 +42,4 @@ def send_text(article_title:str):
     except Exception as e:
         print(f'Error sending SMS: {e}')
 
+check_viral_article()
