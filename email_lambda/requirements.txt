@@ -1,0 +1,5 @@
+psycopg2-binary
+boto3
+pandas
+python-dotenv
+openai
