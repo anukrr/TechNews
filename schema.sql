@@ -50,7 +50,7 @@ CREATE TABLE records (
   record_id INT GENERATED ALWAYS AS IDENTITY, 
   story_id INT NOT NULL,
   score SMALLINT NOT NULL,
-  comments INT NOT NULL,
+  comments SMALLINT NOT NULL,
   record_time TIMESTAMP NOT NULL DEFAULT current_timestamp,
   PRIMARY KEY (record_id),
   CONSTRAINT fk_story
