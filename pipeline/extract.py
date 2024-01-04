@@ -27,7 +27,7 @@ def extract_story_info(story_id: int) -> dict:
                         "time", "score", "descendants", "type"]
         story_dict = {col: story_info.get(col) for col in relevant_cols}
         return story_dict
-    except Exception as e:
+    except exceptions.RequestException as e:
          print(f"Error extracting story information {e}")
 
 

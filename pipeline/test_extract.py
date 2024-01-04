@@ -24,7 +24,7 @@ def test_get_info_string():
 
 
 def test_get_info_empty():
-    with pytest.raises(Exception):
+    with pytest.raises(AttributeError):
         extract_story_info(' ')
 
 
