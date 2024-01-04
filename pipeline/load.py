@@ -29,11 +29,11 @@ def upload_latest_data(df: pd.DataFrame) -> None:
 
     story_query = """
             INSERT INTO stories
-                (story_id, title, author, story_url, creation_date)
+                (story_id, title, author, story_url, creation_date, topic_id)
             VALUES
-                (%s, %s, %s, %s, %s)
+                (%s, %s, %s, %s, %s, %s)
             ON CONFLICT (story_id)
-            DO UPDATE SET (title, author, story_url, creation_date) = (EXCLUDED.title, EXCLUDED.author, EXCLUDED.story_url, EXCLUDED.creation_date)
+            DO UPDATE SET (title, author, story_url, creation_date, topic_id) = (EXCLUDED.title, EXCLUDED.author, EXCLUDED.story_url, EXCLUDED.creation_date, EXCLUDED.topic_id)
             ;
             """
 
@@ -48,7 +48,7 @@ def upload_latest_data(df: pd.DataFrame) -> None:
     conn = get_db_connection()
 
     with conn.cursor() as cursor:
-        stories_columns = df[["id","title","author","story_url","creation_date"]]
+        stories_columns = df[["id","title","author","story_url","creation_date", "topic_id"]]
         stories_insert = stories_columns.values.tolist()
 
         records_columns = df[["id", "score", "comments"]]

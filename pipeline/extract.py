@@ -24,7 +24,7 @@ def extract_story_info(story_id: int) -> dict:
 
 
 def main() -> None:
-    """Collects information on the 200 top stories and stores it in a csv file."""
+    """Collects information on chosen number of top stories and returns them in a dataframe."""
     story_ids = get_top_stories(STORY_COUNT)
 
     all_stories = [extract_story_info(id) for id in story_ids]

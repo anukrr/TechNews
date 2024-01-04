@@ -54,6 +54,8 @@ def clean_dataframe(stories_df: pd.DataFrame) -> pd.DataFrame:
     stories_df = stories_df.drop(columns="type")
     stories_df["topic_id"] = stories_df["story_url"].parallel_apply(generate_topic)
     stories_df.loc[~stories_df["topic_id"].isin(VALID_TOPIC_IDS), "topic_id"] = None
+    stories_df['topic_id'] = stories_df['topic_id'].fillna(0).astype(int)
+
     return stories_df
 
 
