@@ -34,4 +34,4 @@ if __name__ == "__main__":
     STORY_COUNT = 200
 
     stories_df = generate_dataframe(STORY_COUNT)
-    stories_df.to_csv("all_stories.csv", index=False)
+    stories_df.to_csv("extracted_stories.csv", index=False)

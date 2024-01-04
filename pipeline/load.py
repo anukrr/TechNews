@@ -6,6 +6,9 @@ from psycopg2 import connect
 from dotenv import load_dotenv
 
 
+load_dotenv()
+
+
 def get_db_connection():
     """Returns a database connection."""
     try:
@@ -25,7 +28,6 @@ def upload_latest_data(df: pd.DataFrame, connection) -> None:
     """Gets stories and records data from dataframe. Uploads it to database tables.
     If story is already in story table then values are updated with latest version.
     """
-
     story_query = """
             INSERT INTO stories
                 (story_id, title, author, story_url, creation_date, topic_id)
@@ -35,7 +37,6 @@ def upload_latest_data(df: pd.DataFrame, connection) -> None:
             DO UPDATE SET (title, author, story_url, creation_date, topic_id) = (EXCLUDED.title, EXCLUDED.author, EXCLUDED.story_url, EXCLUDED.creation_date, EXCLUDED.topic_id)
             ;
             """
-
     record_query = """
             INSERT INTO records
                 (story_id, score, comments)
@@ -44,12 +45,12 @@ def upload_latest_data(df: pd.DataFrame, connection) -> None:
             ;
             """
 
-
     with connection.cursor() as cursor:
-        stories_columns = df[["id","title","author","story_url","creation_date", "topic_id"]]
-        stories_insert = stories_columns.values.tolist()
-
+        stories_columns = df[["id", "title", "author",
+                              "story_url", "creation_date", "topic_id"]]
         records_columns = df[["id", "score", "comments"]]
+
+        stories_insert = stories_columns.values.tolist()
         records_insert = records_columns.values.tolist()
 
         # execute_values is a faster option if necessary, but you have to rework the query etc.
@@ -61,9 +62,7 @@ def upload_latest_data(df: pd.DataFrame, connection) -> None:
 
 
 if __name__ == "__main__":
-    load_dotenv()
 
     data = pd.read_csv('clean_all_stories.csv')
     conn = get_db_connection()
-
     upload_latest_data(data, conn)
