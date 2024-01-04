@@ -4,9 +4,9 @@ DROP DATABASE IF EXISTS technews;
 
 CREATE DATABASE technews;
 \c technews
-DROP TABLE IF EXISTS topics;
-DROP TABLE IF EXISTS stories;
 DROP TABLE IF EXISTS records;
+DROP TABLE IF EXISTS stories;
+DROP TABLE IF EXISTS topics;
 
 
 CREATE TABLE topics (
