@@ -7,7 +7,7 @@ import boto3
 
 load_dotenv()
 
-THRESHOLD = 20
+THRESHOLD = environ["THRESHOLD"]
 STORY_LIMIT = 200
 
 engine_url_object = URL.create(
@@ -56,10 +56,10 @@ def viral_checker(threshold: int, story_limit: int) -> list[dict]:
 
 def generate_viral_notif_msg(stories: list) -> str:
     """Creates a SMS message with details about viral stories."""
-    msg = """🚨VIRAL STORY🚨"""
+    msg = """🚨HOT RIGHT NOW🚨"""
     for story in stories:
         msg += f"\n • {story.get('title')} ({story.get('story_url')})"
-    msg += "\nMake sure to check them out."
+    msg += "\nCheck it out!"
     return msg
 
 
@@ -79,4 +79,4 @@ def lambda_handler(event, context):
 
 if __name__ == "__main__":
 
-    lambda_handler("h","g")
+    lambda_handler(None,None)
