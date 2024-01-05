@@ -13,7 +13,8 @@ def get_top_stories(count: int) -> list:
         top_stories = get(BASE_URL + "topstories.json", timeout=100).json()
         return top_stories[:count]
     except exceptions.RequestException as e:
-         logging.error(f"Error getting api request {e}")
+        logging.exception(f"Error getting api request {e}")
+        raise Exception
 
 
 def extract_story_info(story_id: int) -> dict:
@@ -26,19 +27,20 @@ def extract_story_info(story_id: int) -> dict:
         story_dict = {col: story_info.get(col) for col in relevant_cols}
         return story_dict
     except exceptions.RequestException as e:
-         logging.error(f"Error extracting story information {e}")
-         raise
+         logging.exception(f"Error extracting story information {e}")
+         raise Exception
 
 
 def generate_dataframe(row_count: int) -> None:
     """Collects information on chosen number of top stories and returns them in a dataframe."""
     try:
         logging.info("Extraction Started.")
-      story_ids = get_top_stories(row_count)
-      all_stories = [extract_story_info(id) for id in story_ids]
-      return pd.DataFrame(all_stories)
+        story_ids = get_top_stories(row_count)
+        all_stories = [extract_story_info(id) for id in story_ids]
+        return pd.DataFrame(all_stories)
     except Exception as e:
-        logging.error(f"Error extracting stories from api: {e}")
+        logging.exception(f"Error extracting stories from api: {e}")
+        raise Exception
     
 
 if __name__ == "__main__":

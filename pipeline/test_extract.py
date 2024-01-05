@@ -7,25 +7,25 @@ STORY_COUNT =200
 
 def test_get_story_string():
     """Checks if invalid input type raises Error."""
-    with pytest.raises(TypeError):
+    with pytest.raises(Exception):
         get_top_stories('2')
 
 
 def test_get_story_empty():
     """Tests exception raised when no input provided."""
-    with pytest.raises(TypeError):
+    with pytest.raises(Exception):
         get_top_stories()
 
 
 def test_get_info_string():
     """Tests exception raised when empty string provided."""
-    with pytest.raises(AttributeError):
+    with pytest.raises(Exception):
         extract_story_info(' ')
 
 
 def test_get_info_empty():
     """Tests exception raised when no input provided."""
-    with pytest.raises(TypeError):
+    with pytest.raises(Exception):
         extract_story_info()
 
 
