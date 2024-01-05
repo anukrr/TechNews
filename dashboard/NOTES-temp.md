@@ -1,7 +1,6 @@
 
-Top Stories Right Now - Top 5 most liked stories
-Could be a scrolling list with up to 20 stories
-
+- Top Stories Right Now - Top 5 most liked stories
+- Could be a scrolling list with up to 20 stories
 - Trending Now
 - Insights 
 - What people are talking about?
@@ -12,3 +11,4 @@ Could be a scrolling list with up to 20 stories
 
 # Bonus ideas
 Virality predictor: score at 1hr might be a good predictor of virality/making it to best stories
+ability to modify or add email/text subscription frequency, thresholds and topics from dashboard
