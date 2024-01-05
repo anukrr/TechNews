@@ -38,8 +38,6 @@ def extract_story_info(story_id: int) -> dict:
 
 def generate_dataframe(row_count: int) -> None:
     """Collects information on chosen number of top stories and returns them in a dataframe."""
-    logging.info("Extraction Started.")
-
     story_ids = get_top_stories(row_count)
     all_stories = [extract_story_info(id) for id in story_ids]
     return pd.DataFrame(all_stories)
