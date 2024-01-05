@@ -52,19 +52,25 @@ def get_url_list(dataframe: pd.DataFrame) -> list:
 
 def summarise_stories(url_list:list[str]):
     """Uses the OpenAI API to generate summaries for a list of URLs."""
+    system_content_spec = """You are a newsletter writer, producing a newsletter 
+                        similar to https://www.morningbrew.com/daily/issues/latest."""
+    user_content_spec = f"""Write a summary approximately 200 words in length, 
+                        that gives key insights for articles in list: {url_list}, 
+                        return a list of dictionaries with keys 'article_title' which 
+                        includes the name of the article and 'summary for each article'."""
 
     client = OpenAI(api_key=environ["OPENAI_API_KEY"])
     response = client.chat.completions.create(
         model=environ["GPT-MODEL"],
         messages=[
-            {"role": "system", "content": "You are a newsletter writer, producing a newsletter similar to the morning brew."},
-            {"role": "user", "content": f"""Write a summary approximately 200 words in length, that gives key insights for articles in list: {url_list}, 
-                                            return a list of dictionaries with keys 'article_title' which includes the name of the article and 'summary for each article'."""}
-            ],
+            {"role": "system", "content": system_content_spec},
+            {"role": "user", "content": user_content_spec}],
         temperature=1
-    )
+        )
+    
     article_summary = response.choices[0].message.content.strip()
     return article_summary
+
 
 def send_email(html_string:str):
     '''Sends email newsletter using generated html string.'''
