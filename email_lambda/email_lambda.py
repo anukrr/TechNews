@@ -24,7 +24,7 @@ def get_db_connection():
         raise
 
 
-def load_data():
+def load_stories_data() -> pd.DataFrame:
     """Loads stories with greatest score change over last 24hrs from RDS.
     Returns them as a Dataframe object."""
     query = """
@@ -39,18 +39,18 @@ def load_data():
             WHERE record_time >= NOW() - INTERVAL '24 hours'
             GROUP BY records.story_id, stories.title, stories.story_url
             ORDER BY score_change 
-                DESC
+                DESC LIMIT 5
             ;
             """
     return pd.read_sql(query, con=get_db_connection())
 
 
-def get_url_list():
-    df = load_data()
-    return df['story_url'].to_list()
+def get_url_list(dataframe: pd.DataFrame) -> list:
+    """Gets a list of story URLs from a dataframe."""
+    return dataframe['story_url'].to_list()
 
 
-def summarise_story(url_list:list[str]):
+def summarise_stories(url_list:list[str]):
     """Uses the OpenAI API to generate summaries for a list of URLs."""
 
     client = OpenAI(api_key=environ["OPENAI_API_KEY"])
@@ -97,8 +97,9 @@ def send_email(html_string:str):
 
 def generate_html_string() -> str:
     '''Generates HTML string for the email.'''
-    url_list = get_url_list()
-    summary = summarise_story(url_list)
+    top_stories = load_stories_data()
+    top_url_list = get_url_list(top_stories)
+    summary = summarise_stories(top_url_list)
     dict_of_summary = json.loads(f"{summary}")
     html_start = f"""<html>
     <head>
