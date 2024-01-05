@@ -68,7 +68,7 @@ def get_url_list(dataframe: pd.DataFrame) -> list:
     return dataframe['story_url'].to_list()
 
 
-def summarise_stories(url_list:list[str]):
+def summarise_stories(url_list:list[str]) -> str: # not sure the type of the output here
     """Uses the OpenAI API to generate summaries for a list of URLs."""
     system_content_spec = """You are a newsletter writer, producing a newsletter
                         similar to https://www.morningbrew.com/daily/issues/latest."""
@@ -89,6 +89,63 @@ def summarise_stories(url_list:list[str]):
         return response.choices[0].message.content.strip()
     except openai.APIError as error:
         return handle_openai_errors(error)
+
+
+def generate_summaries_dict() -> dict:
+    """Creates a dictionary containing all"""
+    top_stories = load_stories_data()
+    top_url_list = get_url_list(top_stories)
+    summaries = summarise_stories(top_url_list)
+    return json.loads(f"{summaries}")
+
+
+def generate_html_string(summaries_dict: dict) -> str:
+    """Generates a html string for the contents of an email."""
+    html_start = """<html>
+                        <head>
+                        </head>
+                        <body>
+                        <center class="wrapper">
+                            <table class="main" width="700">
+                            <tr>
+                                <td height="8" style="background-color: #F0F8FF;">
+                                </td>
+                                </tr>
+                        <h1> Daily Brief</h1>
+                        <h1 style="color:#5F9EA0">Top Stories</h1>"""
+    html_end = """</body>
+                    </table>
+                </center>
+                </body>
+                </html>"""
+
+    articles_list = []
+    for article in summaries_dict:
+        article_box = f"""<body style="border-width:3px;
+                            border-style:solid; border-color:#E6E6FA;
+                            border-radius: 12px;
+                            padding: 20px;
+                            border-spacing: 10px 2em;">
+                        <h2 style="color: #008B8B;"> {article.get('article_title')}</h2>
+                        <p style="color:#6495ED"> {article.get('summary')} </p> </body>"""
+        articles_list.append(article_box)
+
+    # --- ALTERNATIVE WAY WE SHOULD TRY ---
+    # article_box_template = """<body style="border-width:3px;
+    #                  border-style:solid; border-color:#E6E6FA;
+    #                  border-radius: 12px;
+    #                  padding: 20px;
+    #                  border-spacing: 10px 2em;">
+    #    <h2 style="color: #008B8B;"> {article.get('article_title')}</h2>
+    #    <p style="color:#6495ED"> {article.get('summary')} </p> </body>"""
+
+    # articles_list = [f"{article_box_template}" for article in summaries_dict]
+    # 
+        
+    articles_string = " ".join(articles_list)
+    html_full = html_start + articles_string + html_end
+
+    return html_full
 
 
 def send_email(html_string: str):
@@ -126,51 +183,10 @@ def send_email(html_string: str):
 
     return response
 
-def generate_html_string() -> str:
-    '''Generates HTML string for the email.'''
-    top_stories = load_stories_data()
-    top_url_list = get_url_list(top_stories)
-    summary = summarise_stories(top_url_list)
-    summaries_data = json.loads(f"{summary}")
-
-    html_start = """<html>
-                        <head>
-                        </head>
-                        <body>
-                        <center class="wrapper">
-                            <table class="main" width="700">
-                            <tr>
-                                <td height="8" style="background-color: #F0F8FF;">
-                                </td>
-                                </tr>
-                        <h1> Daily Brief</h1>
-                        <h1 style="color:#5F9EA0">Top Stories</h1>"""
-
-    html_end = """</body>
-                    </table>
-                </center>
-                </body>
-                </html>"""
-
-    articles_list = []
-    for article in summaries_data:
-        article_box = f"""<body style="border-width:3px;
-                            border-style:solid; border-color:#E6E6FA;
-                            border-radius: 12px;
-                            padding: 20px;
-                            border-spacing: 10px 2em;">
-                        <h2 style="color: #008B8B;"> {article.get('article_title')}</h2>
-                        <p style="color:#6495ED"> {article.get('summary')} </p> </body>"""
-        articles_list.append(article_box)
-
-    articles_string = " ".join(articles_list)
-
-    html_full = html_start + articles_string + html_end
-
-    return html_full
 
 def handler(): #event=None, context=None
     """Handler function."""
     load_dotenv()
-    html_str = generate_html_string()
+    summaries_data = generate_summaries_dict()
+    html_str = generate_html_string(summaries_data)
     return send_email(html_str)
