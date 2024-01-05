@@ -6,40 +6,43 @@ from datetime import date
 import psycopg2
 from openai import OpenAI
 import json
+import logging
 
 
 def get_db_connection():
-    '''Forms AWS RDS postgres connection.'''
+    """Returns a database connection."""
     try:
-        conn = psycopg2.connect(dbname=environ["DB_NAME"],
-                                host=environ["DB_HOST"],
-                                user=environ["DB_USER"],
-                                password=environ["DB_PASSWORD"],
-                                port=environ["DB_PORT"])
-        return conn
-    except Exception as e:
-        print(f'Error: Unable to form connection {e}')
+        return psycopg2.connect(
+            host=environ["DB_HOST"],
+            port=environ["DB_PORT"],
+            database=environ["DB_NAME"],
+            user=environ["DB_USER"],
+            password=environ["DB_PASSWORD"]
+            )
+    except psycopg2.OperationalError as error:
+        logging.exception("Error connecting to the database: %s", error)
+        raise
 
 
 def load_data():
-    conn = get_db_connection()
-    with conn.cursor() as curr:
-
-        # choose stories with top 5 scores, but don't allow repeats
-        curr.execute("""
-                    SELECT DISTINCT ON (records.story_id) 
-                     records.*, stories.* FROM records
-                    JOIN stories ON records.story_id = stories.story_id 
-                    WHERE record_time >= NOW() - INTERVAL '24 HOURS'
-                    ORDER BY records.story_id, records.score DESC LIMIT 5;
-                     ;
-                    """)
-        data = curr.fetchall()
-        df = pd.DataFrame(data)
-        column_names = [desc[0] for desc in curr.description]
-        df.columns = column_names
-        curr.close()
-    return df
+    """Loads stories with greatest score change over last 24hrs from RDS.
+    Returns them as a Dataframe object."""
+    query = """
+            SELECT
+                records.story_id, 
+                MAX(score) - MIN(score) AS score_change,
+                stories.title,
+                stories.story_url,
+                MAX(record_time) AS latest_update
+            FROM records
+            JOIN stories ON records.story_id = stories.story_id
+            WHERE record_time >= NOW() - INTERVAL '24 hours'
+            GROUP BY records.story_id, stories.title, stories.story_url
+            ORDER BY score_change 
+                DESC
+            ;
+            """
+    return pd.read_sql(query, con=get_db_connection())
 
 
 def get_url_list():
@@ -48,11 +51,11 @@ def get_url_list():
 
 
 def summarise_story(url_list:list[str]):
-    '''Uses OpenAI lambda function to generate .'''
+    """Uses the OpenAI API to generate summaries for a list of URLs."""
 
     client = OpenAI(api_key=environ["OPENAI_API_KEY"])
     response = client.chat.completions.create(
-        model="gpt-4",
+        model=environ["GPT-MODEL"],
         messages=[
             {"role": "system", "content": "You are a newsletter writer, producing a newsletter similar to the morning brew."},
             {"role": "user", "content": f"""Write a summary approximately 200 words in length, that gives key insights for articles in list: {url_list}, 
