@@ -4,9 +4,24 @@ import pandas as pd
 import boto3
 from datetime import date
 import psycopg2
-from openai import OpenAI
+import openai
 import json
 import logging
+
+
+DATE_TODAY = date.today().strftime("%A %B %d %Y")
+
+def handle_openai_errors(err):
+    """OpenAI API request error-handling as per official docs."""
+    if isinstance(err, openai.APIError):
+        logging.exception("OpenAI API returned an API Error: %s", err)
+    elif isinstance(err, openai.APIConnectionError):
+        logging.exception("Failed to connect to OpenAI API: %s", err)
+    elif isinstance(err, openai.RateLimitError):
+        logging.exception("OpenAI API request exceeded rate limit: %s", err)
+    else:
+        logging.exception("Unexpected error: %s", err)
+    raise err
 
 
 def get_db_connection():
@@ -59,30 +74,37 @@ def summarise_stories(url_list:list[str]):
                         return a list of dictionaries with keys 'article_title' which 
                         includes the name of the article and 'summary for each article'."""
 
-    client = OpenAI(api_key=environ["OPENAI_API_KEY"])
-    response = client.chat.completions.create(
-        model=environ["GPT-MODEL"],
-        messages=[
-            {"role": "system", "content": system_content_spec},
-            {"role": "user", "content": user_content_spec}],
-        temperature=1
-        )
-    
-    article_summary = response.choices[0].message.content.strip()
-    return article_summary
+    client = openai.OpenAI(api_key=environ["OPENAI_API_KEY"])
+    try:
+        response = client.chat.completions.create(
+            model=environ["GPT-MODEL"],
+            messages=[
+                {"role": "system", "content": system_content_spec},
+                {"role": "user", "content": user_content_spec}],
+            temperature=1
+            )
+        return response.choices[0].message.content.strip()
+    except openai.APIError as error:
+        return handle_openai_errors(error)
 
 
-def send_email(html_string:str):
-    '''Sends email newsletter using generated html string.'''
-    today = date.today()
-    today_date = today.strftime("%B %d")
-    # email_html = generate_html_string(top_10_articles)
-    client = boto3.client('ses', region_name='eu-west-2', aws_access_key_id=environ["ACCESS_KEY_ID"],
+def send_email(html_string: str):
+    """Sends email newsletter using generated html string."""
+
+    client = boto3.client('ses', 
+                          region_name='eu-west-2', 
+                          aws_access_key_id=environ["ACCESS_KEY_ID"],
                           aws_secret_access_key=environ["SECRET_ACCESS_KEY"])
 
     response = client.send_email(
         Destination={
-            'ToAddresses': ['trainee.anurag.kaur@sigmalabs.co.uk']
+            'ToAddresses': ['trainee.anurag.kaur@sigmalabs.co.uk', 
+                            # 'trainee.kevin.chirayil@sigmalabs.co.uk',
+                            # 'trainee.kayode.apena@sigmalabs.co.uk',
+                            # 'trainee.jack.hayden@sigmalabs.co.uk',
+                            # more?
+                            ]
+            # might need everyone added as a BccAddress instead (see docs)
         },
         Message={
             'Body': {
@@ -93,7 +115,7 @@ def send_email(html_string:str):
             },
             'Subject': {
                 'Charset': 'UTF-8',
-                'Data': f'Daily Brief {today_date}',
+                'Data': f'Daily Brief {DATE_TODAY}',
             },
         },
         Source='trainee.anurag.kaur@sigmalabs.co.uk'
@@ -107,24 +129,26 @@ def generate_html_string() -> str:
     top_url_list = get_url_list(top_stories)
     summary = summarise_stories(top_url_list)
     dict_of_summary = json.loads(f"{summary}")
+    
     html_start = f"""<html>
-    <head>
-    </head>
-    <body>
-    <center class="wrapper">
-        <table class="main" width="700">
-        <tr>
-            <td height="8" style="background-color: #F0F8FF;">
-            </td>
-            </tr>
-    <h1> Daily Brief</h1>
-    <h1 style="color:#5F9EA0">Top Stories</h1>"""
+                        <head>
+                        </head>
+                        <body>
+                        <center class="wrapper">
+                            <table class="main" width="700">
+                            <tr>
+                                <td height="8" style="background-color: #F0F8FF;">
+                                </td>
+                                </tr>
+                        <h1> Daily Brief</h1>
+                        <h1 style="color:#5F9EA0">Top Stories</h1>"""
 
     html_end="""</body>
-        </table>
-    </center>
-    </body>
-    </html>"""
+                    </table>
+                </center>
+                </body>
+                </html>"""
+    
     articles_list = []
     for article in dict_of_summary:
         title = article.get('article_title')
@@ -133,8 +157,10 @@ def generate_html_string() -> str:
         <h2 style="color: #008B8B;"> {title}</h2>
         <p style="color:#6495ED"> {summary} </p> </body>"""
         articles_list.append(article_box)
+
     articles_string = " ".join(articles_list)
     html_full = html_start + articles_string + html_end
+    
     return html_full
 
 def handler(event=None, context=None):
