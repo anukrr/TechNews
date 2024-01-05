@@ -6,8 +6,7 @@ from datetime import date
 import psycopg2
 from openai import OpenAI
 import json
-import requests
-from bs4 import BeautifulSoup
+
 
 def get_db_connection():
     '''Forms AWS RDS postgres connection.'''
@@ -46,16 +45,6 @@ def load_data():
 def get_url_list():
     df = load_data()
     return df['story_url'].to_list()
-
-def extract_text_from_article(url:[str]):
-
-
-    response = requests.get(url)
-    retrieve_data = BeautifulSoup(response.text, 'html.parser')
-    extract_elements = retrieve_data.findAll(True)
-    extract_all_text = [element.get_text() for element in extract_elements]
-    
-    return extract_all_text
 
 
 def summarise_story(url_list:list[str]):
@@ -138,15 +127,9 @@ def generate_html_string() -> str:
     html_full = html_start + articles_string + html_end
     return html_full
 
-# def handler(event=None, context=None):
-#     load_dotenv()
-#     html_str = generate_html_string()
-#     return send_email(html_str)
+def handler(event=None, context=None):
+    load_dotenv()
+    html_str = generate_html_string()
+    return send_email(html_str)
 
-load_dotenv()
-url_list = get_url_list()
-# print(url_list)
-# summary = summarise_story(url_list)
-# print(summary)
-html_str = generate_html_string()
-send_email(html_str)
+
