@@ -1,4 +1,4 @@
-'''Sends SMS if viral article detected. '''
+"""Sends SMS if viral article detected."""
 from os import environ
 from dotenv import load_dotenv
 from sqlalchemy import create_engine, URL
@@ -50,7 +50,6 @@ def viral_checker(threshold: int, story_limit: int) -> list[dict]:
     if story_ids:
         story_info_query = f"""SELECT title, story_url FROM stories WHERE story_id IN {story_ids};"""
         story_info = pd.read_sql(story_info_query, engine).to_dict(orient="records")
-        
     return story_info
 
 
@@ -68,6 +67,7 @@ def lambda_handler(event, context):
     viral_stories = viral_checker(THRESHOLD, STORY_LIMIT)
     if viral_stories:
         try:
+            print(viral_stories)
             client = boto3.client('sns')
             response = client.publish(TopicArn='arn:aws:sns:eu-west-2:129033205317:c9-tech-news-sms',
                                     Message=generate_viral_notif_msg(viral_stories))
@@ -79,4 +79,4 @@ def lambda_handler(event, context):
 
 if __name__ == "__main__":
 
-    lambda_handler(None,None)
+    print(lambda_handler(None,None))
