@@ -1,15 +1,18 @@
+"""Lamnda function to send daily summary emails."""
+
 from os import environ
+from datetime import date
+import json
+import logging
 from dotenv import load_dotenv
 import pandas as pd
 import boto3
-from datetime import date
 import psycopg2
 import openai
-import json
-import logging
 
 
 DATE_TODAY = date.today().strftime("%A %B %d %Y")
+
 
 def handle_openai_errors(err):
     """OpenAI API request error-handling as per official docs."""
@@ -44,7 +47,7 @@ def load_stories_data() -> pd.DataFrame:
     Returns them as a Dataframe object."""
     query = """
             SELECT
-                records.story_id, 
+                records.story_id,
                 MAX(score) - MIN(score) AS score_change,
                 stories.title,
                 stories.story_url,
@@ -53,7 +56,7 @@ def load_stories_data() -> pd.DataFrame:
             JOIN stories ON records.story_id = stories.story_id
             WHERE record_time >= NOW() - INTERVAL '24 hours'
             GROUP BY records.story_id, stories.title, stories.story_url
-            ORDER BY score_change 
+            ORDER BY score_change
                 DESC LIMIT 5
             ;
             """
@@ -67,11 +70,11 @@ def get_url_list(dataframe: pd.DataFrame) -> list:
 
 def summarise_stories(url_list:list[str]):
     """Uses the OpenAI API to generate summaries for a list of URLs."""
-    system_content_spec = """You are a newsletter writer, producing a newsletter 
+    system_content_spec = """You are a newsletter writer, producing a newsletter
                         similar to https://www.morningbrew.com/daily/issues/latest."""
-    user_content_spec = f"""Write a summary approximately 200 words in length, 
-                        that gives key insights for articles in list: {url_list}, 
-                        return a list of dictionaries with keys 'article_title' which 
+    user_content_spec = f"""Write a summary approximately 200 words in length,
+                        that gives key insights for articles in list: {url_list},
+                        return a list of dictionaries with keys 'article_title' which
                         includes the name of the article and 'summary for each article'."""
 
     client = openai.OpenAI(api_key=environ["OPENAI_API_KEY"])
@@ -91,33 +94,33 @@ def summarise_stories(url_list:list[str]):
 def send_email(html_string: str):
     """Sends email newsletter using generated html string."""
 
-    client = boto3.client('ses', 
-                          region_name='eu-west-2', 
+    client = boto3.client('ses',
+                          region_name='eu-west-2',
                           aws_access_key_id=environ["ACCESS_KEY_ID"],
                           aws_secret_access_key=environ["SECRET_ACCESS_KEY"])
 
     response = client.send_email(
         Destination={
-            'ToAddresses': ['trainee.anurag.kaur@sigmalabs.co.uk', 
-                            # 'trainee.kevin.chirayil@sigmalabs.co.uk',
-                            # 'trainee.kayode.apena@sigmalabs.co.uk',
-                            # 'trainee.jack.hayden@sigmalabs.co.uk',
-                            # more?
-                            ]
-            # might need everyone added as a BccAddress instead (see docs)
-        },
+                'ToAddresses': ['trainee.anurag.kaur@sigmalabs.co.uk',
+                                # 'trainee.kevin.chirayil@sigmalabs.co.uk',
+                                # 'trainee.kayode.apena@sigmalabs.co.uk',
+                                # 'trainee.jack.hayden@sigmalabs.co.uk',
+                                # more?
+                                ]
+                # might need everyone added as a BccAddress instead (see docs)
+            },
         Message={
-            'Body': {
-                'Html': {
+                'Body': {
+                    'Html': {
+                        'Charset': 'UTF-8',
+                        'Data': html_string
+                    }
+                },
+                'Subject': {
                     'Charset': 'UTF-8',
-                    'Data': html_string
-                }
+                    'Data': f'Daily Brief {DATE_TODAY}',
+                },
             },
-            'Subject': {
-                'Charset': 'UTF-8',
-                'Data': f'Daily Brief {DATE_TODAY}',
-            },
-        },
         Source='trainee.anurag.kaur@sigmalabs.co.uk'
     )
 
@@ -128,9 +131,9 @@ def generate_html_string() -> str:
     top_stories = load_stories_data()
     top_url_list = get_url_list(top_stories)
     summary = summarise_stories(top_url_list)
-    dict_of_summary = json.loads(f"{summary}")
-    
-    html_start = f"""<html>
+    summaries_data = json.loads(f"{summary}")
+
+    html_start = """<html>
                         <head>
                         </head>
                         <body>
@@ -143,29 +146,31 @@ def generate_html_string() -> str:
                         <h1> Daily Brief</h1>
                         <h1 style="color:#5F9EA0">Top Stories</h1>"""
 
-    html_end="""</body>
+    html_end = """</body>
                     </table>
                 </center>
                 </body>
                 </html>"""
-    
+
     articles_list = []
-    for article in dict_of_summary:
-        title = article.get('article_title')
-        summary = article.get('summary')
-        article_box = f"""<body style="border-width:3px; border-style:solid; border-color:#E6E6FA; border-radius: 12px; padding: 20px; border-spacing: 10px 2em;">
-        <h2 style="color: #008B8B;"> {title}</h2>
-        <p style="color:#6495ED"> {summary} </p> </body>"""
+    for article in summaries_data:
+        article_box = f"""<body style="border-width:3px;
+                            border-style:solid; border-color:#E6E6FA;
+                            border-radius: 12px;
+                            padding: 20px;
+                            border-spacing: 10px 2em;">
+                        <h2 style="color: #008B8B;"> {article.get('article_title')}</h2>
+                        <p style="color:#6495ED"> {article.get('summary')} </p> </body>"""
         articles_list.append(article_box)
 
     articles_string = " ".join(articles_list)
+
     html_full = html_start + articles_string + html_end
-    
+
     return html_full
 
-def handler(event=None, context=None):
+def handler(): #event=None, context=None
+    """Handler function."""
     load_dotenv()
     html_str = generate_html_string()
     return send_email(html_str)
-
-
