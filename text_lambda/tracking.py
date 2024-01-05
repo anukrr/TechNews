@@ -1,14 +1,12 @@
 """Routine script that checks how much database entries change based on score."""
 from os import environ
 from dotenv import load_dotenv
-import psycopg2
 import pandas as pd
 from sqlalchemy import create_engine, URL
 
-
 load_dotenv()
 
-THRESHOLD = 20
+THRESHOLD = 100
 STORY_LIMIT = 200
 
 engine_url_object = URL.create(
@@ -18,18 +16,6 @@ engine_url_object = URL.create(
         host=environ['DB_HOST'],
         database=environ['DB_NAME'],
         )
-
-def get_db_connection():
-    """Forms AWS RDS postgres connection."""
-    try:
-        conn = psycopg2.connect(dbname=environ["DB_NAME"],
-            host=environ["DB_HOST"],
-            user=environ["DB_USER"],
-            password=environ["DB_PASSWORD"],
-            port=environ["DB_PORT"])
-        return conn
-    except Exception as e:
-        print('Error: Unable to form connection %s', e)
 
 
 def viral_checker(threshold: int, story_limit: int) -> list[dict]:
