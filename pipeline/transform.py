@@ -46,6 +46,7 @@ def generate_topic(story_url: str) -> str:
 def clean_dataframe(stories_df: pd.DataFrame) -> pd.DataFrame:
     """Formats the dataframe correctly and removes invalid entries."""
     try:
+        logging.info("Data cleaning started.")
         stories_df["time"] = pd.to_datetime(stories_df["time"], unit="s")
         stories_df['descendants'] = stories_df['descendants'].fillna(0).astype(int)
         stories_df = stories_df.rename(columns={"descendants": "comments",
@@ -56,6 +57,7 @@ def clean_dataframe(stories_df: pd.DataFrame) -> pd.DataFrame:
         stories_df = stories_df.drop(columns="type")
         stories_df["topic_id"] = stories_df["story_url"].parallel_apply(generate_topic)
         stories_df.loc[~stories_df["topic_id"].isin(VALID_TOPIC_IDS), "topic_id"] = None
+        logging.info("Data cleaning complete.")
         return stories_df
     except Exception as e:
         logging.exception(f"Error cleaning dataframe: {e}")

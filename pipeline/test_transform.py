@@ -1,6 +1,8 @@
+"""Script tests functions in transform.py."""
 import pytest
-from transform import clean_dataframe
 import pandas as pd
+from transform import clean_dataframe
+
 
 
 data = {
@@ -21,7 +23,7 @@ def test_ket_name_changes():
     "Tests base case of dataframe key name changes."
     sample_df = pd.DataFrame(data)
     sample_df = clean_dataframe(sample_df)
-    assert (str(sample_df.keys()) == "Index(['creation_date', 'comments', 'author', 'story_url', 'topic_id'], dtype='object')")
+    assert (str(sample_df.keys())) == "Index(['creation_date', 'comments', 'author', 'story_url', 'topic_id'], dtype='object')"
 
 def test_clean_wrong_input():
     """Tests exception raised if wrong input type provided."""
@@ -43,22 +45,21 @@ def test_clean_int_input():
 def test_clean_partial_empty_df():
     """Tests exception raised if input dataframe is partially empty."""
     with pytest.raises(Exception):
-        data = {
+        faulty_data = {
             "time": [],
             "descendants": [10, None],
             "by": ["rodarima", "noteness"],
             "url": ["https://abagames.github.io/crisp-game-lib-11-games/?pakupaku", "https://github.com/kspalaiologos/malbolge-lisp"],
             "type": ['story', 'comment']
         }
-        sample_df = pd.DataFrame(data)
+        sample_df = pd.DataFrame(faulty_data)
         sample_df = clean_dataframe(sample_df)
         clean_dataframe(sample_df)
 
 def test_clean_empty_df():
     """Tests exception raised if empty dataframe provided as input."""
     with pytest.raises(Exception):
-        data = {"": ""}
-        sample_df = pd.DataFrame(data)
+        faulty_data = {"": ""}
+        sample_df = pd.DataFrame(faulty_data)
         sample_df = clean_dataframe(sample_df)
         clean_dataframe(sample_df)
-
