@@ -2,6 +2,7 @@
 from os import environ
 from dotenv import load_dotenv
 import pandas as pd
+import logging
 
 from openai import OpenAI
 from pandarallel import pandarallel
@@ -17,43 +18,48 @@ pandarallel.initialize(progress_bar=True)
 
 def generate_topic(story_url: str) -> str:
     """Finds the most suitable topic for a url from a predefined list of topics with the OpenAI API."""
-    completion = client.chat.completions.create(
+    try:
+        completion = client.chat.completions.create(
         model="gpt-3.5-turbo",
         messages=[
             {"role": "system",
-             "content": """You are a classifying bot that can categorise urls into only these categories by returning the corresponding number:
-         1. Programming & Software Development
-         2. Game Development
-         3. Algorithms & Data Structures
-         4. Web Development & Browser Technologies
-         5. Computer Graphics & Image Processing
-         6. Operating Systems & Low-level Programming
-         7. Science & Research Publications
-         8. Literature & Book Reviews
-         9. Artificial Intelligence & Machine Learning
-         10. News & Current Affairs.
-         11. Miscellaneous & Interesting Facts"""},
+            "content": """You are a classifying bot that can categorise urls into only these categories by returning the corresponding number:
+            1. Programming & Software Development
+            2. Game Development
+            3. Algorithms & Data Structures
+            4. Web Development & Browser Technologies
+            5. Computer Graphics & Image Processing
+            6. Operating Systems & Low-level Programming
+            7. Science & Research Publications
+            8. Literature & Book Reviews
+            9. Artificial Intelligence & Machine Learning
+            10. News & Current Affairs.
+            11. Miscellaneous & Interesting Facts"""},
             {"role": "user",
-             "content": f"""Categorise this url into one of the listed categories: {story_url}.
-         Only state the category number and nothing else. Ensure your only output is a number."""}])
-    return completion.choices[0].message.content
+            "content": f"""Categorise this url into one of the listed categories: {story_url}.
+            Only state the category number and nothing else. Ensure your only output is a number."""}])
+        return completion.choices[0].message.content
+    except Exception as e:
+        logging.exception(f"Error extracting topics using API: {e}")
 
 
 def clean_dataframe(stories_df: pd.DataFrame) -> pd.DataFrame:
     """Formats the dataframe correctly and removes invalid entries."""
-    stories_df["time"] = pd.to_datetime(stories_df["time"], unit="s")
-    stories_df['descendants'] = stories_df['descendants'].fillna(0).astype(int)
-    stories_df = stories_df.rename(columns={"descendants": "comments",
-                                            "by": "author",
-                                            "time": "creation_date",
-                                            "url": "story_url"})
-    stories_df = stories_df[stories_df.type == "story"]
-    stories_df = stories_df.drop(columns="type")
-    stories_df["topic_id"] = stories_df["story_url"].parallel_apply(
-        generate_topic)
-    stories_df.loc[~stories_df["topic_id"].isin(
-        VALID_TOPIC_IDS), "topic_id"] = None
-    return stories_df
+    try:
+        stories_df["time"] = pd.to_datetime(stories_df["time"], unit="s")
+        stories_df['descendants'] = stories_df['descendants'].fillna(0).astype(int)
+        stories_df = stories_df.rename(columns={"descendants": "comments",
+                                                "by": "author",
+                                                "time": "creation_date",
+                                                "url": "story_url"})
+        stories_df = stories_df[stories_df.type == "story"]
+        stories_df = stories_df.drop(columns="type")
+        stories_df["topic_id"] = stories_df["story_url"].parallel_apply(generate_topic)
+        stories_df.loc[~stories_df["topic_id"].isin(VALID_TOPIC_IDS), "topic_id"] = None
+        return stories_df
+    except Exception as e:
+        logging.exception(f"Error cleaning dataframe: {e}")
+        raise(Exception)
 
 
 if __name__ == "__main__":
