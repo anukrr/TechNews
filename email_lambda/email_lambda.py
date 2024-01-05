@@ -6,6 +6,8 @@ from datetime import date
 import psycopg2
 from openai import OpenAI
 import json
+import requests
+from bs4 import BeautifulSoup
 
 def get_db_connection():
     '''Forms AWS RDS postgres connection.'''
@@ -23,7 +25,16 @@ def get_db_connection():
 def load_data():
     conn = get_db_connection()
     with conn.cursor() as curr:
-        curr.execute('SELECT * FROM records r JOIN stories s ON r.story_id = s.story_id ORDER BY r.score DESC LIMIT 5;')
+
+        # choose stories with top 5 scores, but don't allow repeats
+        curr.execute("""
+                    SELECT DISTINCT ON (records.story_id) 
+                     records.*, stories.* FROM records
+                    JOIN stories ON records.story_id = stories.story_id 
+                    WHERE record_time >= NOW() - INTERVAL '24 HOURS'
+                    ORDER BY records.story_id, records.score DESC LIMIT 5;
+                     ;
+                    """)
         data = curr.fetchall()
         df = pd.DataFrame(data)
         column_names = [desc[0] for desc in curr.description]
@@ -36,16 +47,29 @@ def get_url_list():
     df = load_data()
     return df['story_url'].to_list()
 
+def extract_text_from_article(url:[str]):
+
+
+    response = requests.get(url)
+    retrieve_data = BeautifulSoup(response.text, 'html.parser')
+    extract_elements = retrieve_data.findAll(True)
+    extract_all_text = [element.get_text() for element in extract_elements]
+    
+    return extract_all_text
+
+
 def summarise_story(url_list:list[str]):
     '''Uses OpenAI lambda function to generate .'''
+
     client = OpenAI(api_key=environ["OPENAI_API_KEY"])
     response = client.chat.completions.create(
-        model="gpt-3.5-turbo",
+        model="gpt-4",
         messages=[
-        {"role": "system", "content": "You are a newsletter writer."},
-        {"role": "user", "content": f"Write a comprehensive 150 word summary for articles in this list {url_list}, return a list of dictionaries with keys 'article_title' and 'summary for each article'"}
-        ],
-        temperature=0.5
+            {"role": "system", "content": "You are a newsletter writer, producing a newsletter similar to the morning brew."},
+            {"role": "user", "content": f"""Write a summary approximately 200 words in length, that gives key insights for articles in list: {url_list}, 
+                                            return a list of dictionaries with keys 'article_title' which includes the name of the article and 'summary for each article'."""}
+            ],
+        temperature=1
     )
     article_summary = response.choices[0].message.content.strip()
     return article_summary
@@ -114,8 +138,15 @@ def generate_html_string() -> str:
     html_full = html_start + articles_string + html_end
     return html_full
 
-def handler(event=None, context=None):
-    load_dotenv()
-    html_str = generate_html_string()
-    return send_email(html_str)
+# def handler(event=None, context=None):
+#     load_dotenv()
+#     html_str = generate_html_string()
+#     return send_email(html_str)
 
+load_dotenv()
+url_list = get_url_list()
+# print(url_list)
+# summary = summarise_story(url_list)
+# print(summary)
+html_str = generate_html_string()
+send_email(html_str)
