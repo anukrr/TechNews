@@ -49,17 +49,16 @@ def viral_checker(threshold: int, story_limit: int) -> list[dict]:
     story_info = []
     story_ids = tuple(pd.read_sql(viral_query, engine)["story_id"].to_list())
     if story_ids:
-        story_info_query = f"""SELECT title, story_url FROM stories WHERE story_id IN {story_ids};"""
+        story_info_query = f"SELECT title, story_url FROM stories WHERE story_id IN {story_ids};"
         story_info = pd.read_sql(story_info_query, engine).to_dict(orient="records")
     return story_info
 
 
 def generate_viral_notif_msg(stories: list) -> str:
     """Creates a SMS message with details about viral stories."""
-    msg = """🚨HOT RIGHT NOW🚨"""
+    msg = """HOT RIGHT NOW:"""
     for story in stories:
         msg += f"\n • {story.get('title')} ({story.get('story_url')})"
-    msg += "\nCheck it out!"
     return msg
 
 
@@ -69,15 +68,10 @@ def lambda_handler(event, context):
     if viral_stories:
         try:
             print(viral_stories)
-            client = boto3.client('sns')
-            response = client.publish(TopicArn='arn:aws:sns:eu-west-2:129033205317:c9-tech-news-sms',
+            client = boto3.client("sns")
+            response = client.publish(TopicArn="arn:aws:sns:eu-west-2:129033205317:c9-tech-news-sms",
                                     Message=generate_viral_notif_msg(viral_stories))
             return response
-        except botocore.exceptions.ClientError as e:
-            return f"Error sending SMS: {e}"
+        except botocore.exceptions.ClientError as error:
+            return f"Error sending SMS: {error}"
     return "No viral stories found."
-
-
-if __name__ == "__main__":
-
-    print(lambda_handler(None,None))
