@@ -1,0 +1,8 @@
+requests
+pytest
+pytest-cov
+pandas
+python-dotenv
+streamlit
+altair
+psycopg2-binary
