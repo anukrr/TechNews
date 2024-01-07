@@ -50,6 +50,9 @@ ORDER BY
     score_diff DESC;
 
 
+
+
+
 SELECT
     EXTRACT(HOUR FROM record_time) AS hour_of_day,
     SUM(score) AS total_votes
@@ -87,3 +90,111 @@ JOIN stories s ON r.story_id = s.story_id
 GROUP BY r.story_id, s.title
 )
 SELECT PERCENTILE_CONT(0.5) AS median_score WITHIN GROUP(ORDER BY average_score) FROM AverageScores;
+
+-- Author Contributions, most contributions/most popular
+SELECT s.author, COUNT(*) FROM records r
+JOIN stories s ON r.story_id = s.story_id
+GROUP BY s.author;
+
+
+SELECT s.author, s.title FROM records r
+JOIN stories s ON r.story_id = s.story_id
+GROUP BY s.author, s.title
+ORDER BY s.author
+;
+
+
+-- TOP 5 Movers in last 24 hours
+SELECT
+    r.story_id, s.title,
+    MAX(record_time) AS latest_timestamp,
+    MAX(score) - MIN(score) AS vote_difference
+FROM records r
+JOIN stories s ON r.story_id = s.story_id
+WHERE record_time >= NOW() - INTERVAL '24 hours'
+GROUP BY r.story_id, s.title
+ORDER BY vote_difference DESC
+LIMIT 5;
+
+-- Amount of New stories every hour
+
+SELECT *
+FROM (
+    SELECT DISTINCT EXTRACT(HOUR FROM record_time) AS hour_of_day
+    FROM records 
+) hours
+CROSS JOIN LATERAL (
+    SELECT DISTINCT ON (story_id) *
+    FROM records
+    WHERE EXTRACT(HOUR FROM record_time) = hours.hour_of_day
+    ORDER BY story_id, record_time DESC
+) records;
+
+
+SELECT
+    EXTRACT(HOUR FROM record_time) AS hour_of_day,
+    COUNT(*) AS new_story_count
+FROM (
+    SELECT DISTINCT ON (story_id)
+        story_id,
+        record_time
+    FROM records
+    ORDER BY story_id, record_time DESC
+) AS latest_records
+GROUP BY hour_of_day
+ORDER BY new_story_count;
+
+
+WITH last_day_records AS (
+SELECT * FROM records
+WHERE record_time >= NOW() - INTERVAL '24 hours'
+)
+SELECT
+    EXTRACT(HOUR FROM record_time) AS hour_of_day,
+    COUNT(*) AS new_story_count
+FROM (
+    SELECT DISTINCT ON (story_id)
+        story_id,
+        record_time
+    FROM last_day_records
+    ORDER BY story_id, record_time DESC
+) AS latest_records
+GROUP BY hour_of_day
+ORDER BY new_story_count;
+;
+
+
+SELECT COUNT(*) FROM records
+WHERE record_time >= NOW() - INTERVAL '24 hours';
+
+SELECT COUNT(*) FROM
+(SELECT DISTINCT ON (story_id) * FROM records
+WHERE record_time >= NOW() - INTERVAL '24 hours') AS all_stories_previous_day;
+
+
+-- Number of new stories in top stories over past 24
+SELECT
+    COUNT(DISTINCT story_id) AS unique_story_count
+FROM records r1
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM records r2
+    WHERE r1.story_id = r2.story_id
+      AND r2.record_time < NOW() - INTERVAL '24 hours'
+);
+
+
+
+WITH new_last_day_records AS(
+SELECT
+    COUNT(DISTINCT story_id) AS unique_story_count
+FROM records r1
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM records r2
+    WHERE r1.story_id = r2.story_id
+      AND r2.record_time < NOW() - INTERVAL '24 hours'
+))
+SELECT
+    EXTRACT(HOUR FROM record_time) AS hour_of_day,
+    COUNT(*) AS new_story_count
