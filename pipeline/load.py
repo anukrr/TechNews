@@ -1,8 +1,9 @@
-"Loads script to insert data into RDS."
+"""Load script that insert data into RDS."""
 
 from os import environ
+import logging
 import pandas as pd
-from psycopg2 import connect
+import psycopg2
 from dotenv import load_dotenv
 
 
@@ -12,7 +13,7 @@ load_dotenv()
 def get_db_connection():
     """Returns a database connection."""
     try:
-        connection = connect(
+        connection = psycopg2.connect(
             host=environ["DB_HOST"],
             port=environ["DB_PORT"],
             database=environ["DB_NAME"],
@@ -20,14 +21,16 @@ def get_db_connection():
             password=environ["DB_PASSWORD"]
         )
         return connection
-    except OSError:
-        return {'error': 'Unable to connect to the database.'}
+    except psycopg2.OperationalError as error:
+        # Log the specific error details for troubleshooting
+        logging.exception("Error connecting to the database: %s", error)
+        raise
 
 
 def upload_latest_data(df: pd.DataFrame, connection) -> None:
     """Gets stories and records data from dataframe. Uploads it to database tables.
-    If story is already in story table then values are updated with latest version.
-    """
+    If story is already in story table then values are updated with latest version."""
+
     story_query = """
             INSERT INTO stories
                 (story_id, title, author, story_url, creation_date, topic_id)
