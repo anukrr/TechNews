@@ -1,4 +1,5 @@
 sqlalchemy
 boto3
+botocore
 pandas
 python-dotenv

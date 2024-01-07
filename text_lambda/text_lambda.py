@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 from sqlalchemy import create_engine, URL
 import pandas as pd
 import boto3
+import botocore
 
 load_dotenv()
 
@@ -72,7 +73,7 @@ def lambda_handler(event, context):
             response = client.publish(TopicArn='arn:aws:sns:eu-west-2:129033205317:c9-tech-news-sms',
                                     Message=generate_viral_notif_msg(viral_stories))
             return response
-        except Exception as e:
+        except botocore.exceptions.ClientError as e:
             return f"Error sending SMS: {e}"
     return "No viral stories found."
 
