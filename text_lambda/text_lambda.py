@@ -49,7 +49,10 @@ def viral_checker(threshold: int, story_limit: int) -> list[dict]:
     story_info = []
     story_ids = tuple(pd.read_sql(viral_query, engine)["story_id"].to_list())
     if story_ids:
-        story_info_query = f"SELECT title, story_url FROM stories WHERE story_id IN {story_ids};"
+        if len(story_ids) == 1:
+            story_info_query = f"SELECT title, story_url FROM stories WHERE story_id = {story_ids[0]};"
+        else:
+            story_info_query = f"SELECT title, story_url FROM stories WHERE story_id IN {story_ids};"
         story_info = pd.read_sql(story_info_query, engine).to_dict(orient="records")
     return story_info
 
@@ -68,7 +71,8 @@ def lambda_handler(event, context):
     if viral_stories:
         try:
             print(viral_stories)
-            client = boto3.client("sns")
+            client = boto3.client("sns", region_name="eu-west-2", aws_access_key_id=environ["AWS_ACCESS_KEY_ID"],
+                              aws_secret_access_key=environ["AWS_SECRET_ACCESS_KEY"])
             response = client.publish(TopicArn="arn:aws:sns:eu-west-2:129033205317:c9-tech-news-sms",
                                     Message=generate_viral_notif_msg(viral_stories))
             return response
