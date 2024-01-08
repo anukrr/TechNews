@@ -5,6 +5,11 @@ JOIN stories s ON r.story_id = s.story_id
 GROUP BY r.story_id, s.title;
 
 
+-- LATEST RECORDS PAST HOUR
+SELECT * from records
+WHERE record_time >= NOW() - INTERVAL '1 hour';
+
+
 -- 10 stories which have been in top stories the longest 
 SELECT
     s.title,
@@ -52,7 +57,6 @@ ORDER BY
 
 
 
-
 SELECT
     EXTRACT(HOUR FROM record_time) AS hour_of_day,
     SUM(score) AS total_votes
@@ -64,7 +68,8 @@ ORDER BY
     total_votes DESC;
 
 
--- Average and median scores of all stories of all time
+-- Average and median scores of all stories 
+    -- All time average score
 WITH AverageScores AS (
 SELECT r.story_id, s.title, AVG(r.score) as average_score
 FROM records r
@@ -74,7 +79,15 @@ GROUP BY r.story_id, s.title
 SELECT AVG(average_score) FROM AverageScores
 ;
 
+    -- Avg score last hour
+WITH latest_scores AS (
+SELECT * from records
+WHERE record_time >= NOW() - INTERVAL '1 hour')
+SELECT AVG(score) FROM latest_scores
+;
 
+
+    -- Median all time
 WITH AverageScores AS (
 SELECT r.story_id, s.title, AVG(r.score) as average_score
 FROM records r
@@ -83,8 +96,14 @@ GROUP BY r.story_id, s.title
 )
 SELECT PERCENTILE_CONT(0.5) AS median_score WITHIN GROUP(ORDER BY average_score) FROM AverageScores;
 
--- Author Contributions, most contributions/most popular
+    -- Median last hour
+WITH latest_scores AS (
+SELECT * from records
+WHERE record_time >= NOW() - INTERVAL '1 hour')
+SELECT PERCENTILE_CONT(0.5) WITHIN GROUP(ORDER BY score) AS median_score FROM latest_scores;
 
+
+-- Author Contributions, most contributions/most popular
 
 SELECT author, COUNT(*) as stories_created FROM stories
 GROUP BY author
@@ -100,7 +119,7 @@ ORDER BY records.story_id, records.record_time DESC)
 SELECT s.author, SUM(latest_records.score) AS all_stories_total_votes FROM latest_records
 JOIN stories s ON latest_records.story_id = s.story_id
 GROUP BY s.author
-ORDER BY total_votes DESC
+ORDER BY all_stories_total_votes DESC
 LIMIT 5;
 
 
@@ -116,6 +135,35 @@ GROUP BY r.story_id, s.title
 ORDER BY vote_difference DESC
 LIMIT 5;
 
+
+
+WITH test AS (
+SELECT *
+FROM records
+WHERE story_id IN (
+    SELECT r.story_id
+    FROM records r
+    JOIN stories s ON r.story_id = s.story_id
+    WHERE r.record_time >= NOW() - INTERVAL '24 hours'
+    GROUP BY r.story_id, s.title
+    ORDER BY MAX(r.score) - MIN(r.score) DESC
+    LIMIT 5
+)) 
+SELECT COUNT(*) FROM TEST;
+
+
+SELECT *
+FROM records
+WHERE story_id IN (
+    SELECT r.story_id
+    FROM records r
+    JOIN stories s ON r.story_id = s.story_id
+    WHERE r.record_time >= NOW() - INTERVAL '24 hours'
+    GROUP BY r.story_id, s.title
+    ORDER BY MAX(r.score) - MIN(r.score) DESC
+    LIMIT 5
+)
+ORDER BY story_id, record_time;
 -- Amount of New stories every hour
 
 SELECT *
@@ -170,6 +218,7 @@ WHERE record_time >= NOW() - INTERVAL '24 hours';
 SELECT COUNT(*) FROM
 (SELECT DISTINCT ON (story_id) * FROM records
 WHERE record_time >= NOW() - INTERVAL '24 hours') AS all_stories_previous_day;
+
 
 
 -- Number of new stories in top stories over past 24
