@@ -10,14 +10,15 @@ from sqlalchemy import create_engine, URL, text
 load_dotenv()
 
 WEEK_DAY_COUNT = 7
+BUCKET = "c9-tech-news"
 
 
 engine_url_object = URL.create(
         "postgresql+psycopg2",
-        username=environ['DB_USER'],
-        password=environ['DB_PASSWORD'],
-        host=environ['DB_HOST'],
-        database=environ['DB_NAME'],
+        username=environ["DB_USER"],
+        password=environ["DB_PASSWORD"],
+        host=environ["DB_HOST"],
+        database=environ["DB_NAME"],
         )
 
 
@@ -38,7 +39,7 @@ def get_month_file(s3_client: client, date: datetime.date) -> pd.DataFrame:
     current_year = date.year
     current_month = date.month
     try:
-        response = s3_client.get_object(Bucket="c9-tech-news",
+        response = s3_client.get_object(Bucket=BUCKET,
                                         Key=f"{current_year}/{current_month}.csv").get("Body")
     except ClientError:
         return pd.DataFrame
@@ -56,7 +57,6 @@ def lambda_handler(event, context):
     date_cutoff = datetime.now() - timedelta(days=WEEK_DAY_COUNT)
     old_records = pd.read_sql(f"SELECT * FROM records WHERE record_time < '{date_cutoff}';",
                                engine)
-    old_records.to_csv("test_records.csv", index=False)
 
     s3 = client("s3",
                 aws_access_key_id=environ["ACCESS_KEY_ID"],
@@ -69,8 +69,9 @@ def lambda_handler(event, context):
 
     file_key = f"{today.year}/{today.month}.csv"
     csv_body = month_df.to_csv(index=False)
-    s3.put_object(Body=csv_body, Bucket="c9-tech-news", Key=file_key)
+    s3.put_object(Body=csv_body, Bucket=BUCKET, Key=file_key)
 
     with engine.connect() as conn:
         delete_query = text(f"DELETE FROM records WHERE record_time < '{date_cutoff}';")
         conn.execute(delete_query)
+
