@@ -24,8 +24,6 @@ def get_db_connection():
 def load_data():
     conn = get_db_connection()
     with conn.cursor() as curr:
-
-        # choose stories with top 5 scores, but don't allow repeats
         curr.execute("""
                     SELECT DISTINCT ON (records.story_id) 
                      records.*, stories.* FROM records
@@ -52,11 +50,11 @@ def summarise_story(url_list:list[str]):
 
     client = OpenAI(api_key=environ["OPENAI_API_KEY"])
     response = client.chat.completions.create(
-        model="gpt-4",
+        model="gpt-3.5-turbo-1106",
         messages=[
             {"role": "system", "content": "You are a newsletter writer, producing a newsletter similar to the morning brew."},
             {"role": "user", "content": f"""Write a summary approximately 200 words in length, that gives key insights for articles in list: {url_list}, 
-                                            return a list of dictionaries with keys 'article_title' which includes the name of the article and 'summary for each article'."""}
+                                            return a list of dictionaries with keys 'article_title' which includes the name of the article and 'summary' for each article'."""}
             ],
         temperature=1
     )
@@ -119,17 +117,40 @@ def generate_html_string() -> str:
     for article in dict_of_summary:
         title = article.get('article_title')
         summary = article.get('summary')
+        creation_date = article.get('creation_date')
+        story_url = article.get('story_url')
+        author = article.get('author')
+
         article_box = f"""<body style="border-width:3px; border-style:solid; border-color:#E6E6FA; border-radius: 12px; padding: 20px; border-spacing: 10px 2em;">
         <h2 style="color: #008B8B;"> {title}</h2>
-        <p style="color:#6495ED"> {summary} </p> </body>"""
+        <p style="color:#6495ED"> {summary} </p>
+        <div>
+        <p style="margin-bottom:0;">
+            <a hred={story_url}> Read Article </a> |
+            <p> "{creation_date}" </p> |
+            <p> "{author}" </p>
+            </div>
+            </body>"""
         articles_list.append(article_box)
     articles_string = " ".join(articles_list)
     html_full = html_start + articles_string + html_end
     return html_full
 
-def handler(event=None, context=None):
-    load_dotenv()
-    html_str = generate_html_string()
-    return send_email(html_str)
 
+# def handler(event=None, context=None):
+#     load_dotenv()
+#     html_str = generate_html_string()
+#     return send_email(html_str)
+load_dotenv()
+# df = load_data()
+# print(df['story_url'])
+# html = generate_html_string()
+# send_email(html)
+# print(html)
 
+url_list = get_url_list()
+summary = summarise_story(url_list)
+dict_of_summary = json.loads(f"{summary}")
+print(url_list)
+print(summary)
+print(dict_of_summary)
