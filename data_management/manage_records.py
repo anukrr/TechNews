@@ -59,8 +59,8 @@ def lambda_handler(event, context):
     old_records.to_csv("test_records.csv", index=False)
 
     s3 = client("s3",
-                aws_access_key_id=environ["AWS_ACCESS_KEY_ID"],
-                aws_secret_access_key=environ["AWS_SECRET_ACCESS_KEY"])
+                aws_access_key_id=environ["ACCESS_KEY_ID"],
+                aws_secret_access_key=environ["SECRET_ACCESS_KEY"])
     month_df = get_month_file(s3, today)
     if month_df.empty is False:
         month_df = pd.concat([month_df, old_records], ignore_index=True)
