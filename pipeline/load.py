@@ -62,10 +62,3 @@ def upload_latest_data(df: pd.DataFrame, connection) -> None:
         cursor.executemany(
             record_query, records_insert)
         connection.commit()
-
-
-if __name__ == "__main__":
-
-    data = pd.read_csv('clean_all_stories.csv')
-    conn = get_db_connection()
-    upload_latest_data(data, conn)
