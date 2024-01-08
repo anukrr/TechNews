@@ -7,11 +7,16 @@ A stories virality is calculated by the score increase over the space of an hour
 
 All requirements are stored in the requirements.txt file.
 Environment variables requires as follows:
+Database Credentials:
 `DB_HOST`
 `DB_PORT`
 `DB_NAME`
 `DB_USER`
 `DB_PASSWORD`
+AWS Credentials:
+`ACCESS_KEY_ID`
+`SECRET_ACCESS_KEY`
+Other Variables:
 `THRESHOLD` (the score increase limit per hour for viral stories)
 
 ## `text_lambda.py`
