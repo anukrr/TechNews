@@ -71,8 +71,8 @@ def lambda_handler(event, context):
     if viral_stories:
         try:
             print(viral_stories)
-            client = boto3.client("sns", region_name="eu-west-2", aws_access_key_id=environ["AWS_ACCESS_KEY_ID"],
-                              aws_secret_access_key=environ["AWS_SECRET_ACCESS_KEY"])
+            client = boto3.client("sns", region_name="eu-west-2", aws_access_key_id=environ["ACCESS_KEY_ID"],
+                              aws_secret_access_key=environ["SECRET_ACCESS_KEY"])
             response = client.publish(TopicArn="arn:aws:sns:eu-west-2:129033205317:c9-tech-news-sms",
                                     Message=generate_viral_notif_msg(viral_stories))
             return response
