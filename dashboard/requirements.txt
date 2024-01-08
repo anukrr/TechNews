@@ -5,3 +5,4 @@ pandas
 python-dotenv
 streamlit
 altair
+psycopg2-binary
