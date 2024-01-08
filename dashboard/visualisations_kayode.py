@@ -4,22 +4,24 @@ from psycopg2 import connect
 import pandas as pd
 from dotenv import load_dotenv
 import streamlit as st
+from sqlalchemy import create_engine, URL
 from sql_queries import LONGEST_LASTING_DF, COMMENTS
 
 
 def get_db_connection():
     """Returns a database connection."""
     try:
-        connection = connect(
-            host=environ["DB_HOST"],
-            port=environ["DB_PORT"],
-            database=environ["DB_NAME"],
-            user=environ["DB_USER"],
-            password=environ["DB_PASSWORD"]
+        connection = URL.create(
+        "postgresql+psycopg2",
+        username=environ['DB_USER'],
+        password=environ['DB_PASSWORD'],
+        host=environ['DB_HOST'],
+        database=environ['DB_NAME'],
         )
-        return connection
+        return create_engine(connection)
     except OSError:
         return {'error': 'Unable to connect to the database.'}
+    
 
 
 def font_color_topics(val) -> str:
@@ -76,8 +78,7 @@ if __name__ == "__main__":
     load_dotenv()
     conn = get_db_connection()
 
-    with conn:
-        reading_data = pd.read_sql('SELECT * FROM records;', conn)
+    reading_data = pd.read_sql('SELECT * FROM records;', conn)
 
-        show_long_lived_stories(conn)
-        show_comments_line_chart(conn)
+    show_long_lived_stories(conn)
+    show_comments_line_chart(conn)

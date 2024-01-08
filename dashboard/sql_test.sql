@@ -5,7 +5,7 @@ JOIN stories s ON r.story_id = s.story_id
 GROUP BY r.story_id, s.title;
 
 
--- 10 stories which have lasted the longest 
+-- 10 stories which have been in top stories the longest 
 SELECT
     s.title,
     t.name,
@@ -64,14 +64,6 @@ ORDER BY
     total_votes DESC;
 
 
-SELECT s.title,  t.name,  AS longest_stories
-FROM records r
-JOIN stories s ON r.story_id = s.story_id
-JOIN topics t ON s.topic_id = t.topic_id
-GROUP BY r.story_id, s.title, t.name
-
-
-
 -- Average and median scores of all stories of all time
 WITH AverageScores AS (
 SELECT r.story_id, s.title, AVG(r.score) as average_score
@@ -92,16 +84,24 @@ GROUP BY r.story_id, s.title
 SELECT PERCENTILE_CONT(0.5) AS median_score WITHIN GROUP(ORDER BY average_score) FROM AverageScores;
 
 -- Author Contributions, most contributions/most popular
-SELECT s.author, COUNT(*) FROM records r
-JOIN stories s ON r.story_id = s.story_id
-GROUP BY s.author;
 
 
-SELECT s.author, s.title FROM records r
-JOIN stories s ON r.story_id = s.story_id
-GROUP BY s.author, s.title
-ORDER BY s.author
-;
+SELECT author, COUNT(*) as stories_created FROM stories
+GROUP BY author
+ORDER BY stories_created DESC
+LIMIT 5;
+
+
+WITH latest_records AS (
+SELECT DISTINCT ON (records.story_id)
+    records.story_id, records.score
+FROM records
+ORDER BY records.story_id, records.record_time DESC)
+SELECT s.author, SUM(latest_records.score) AS all_stories_total_votes FROM latest_records
+JOIN stories s ON latest_records.story_id = s.story_id
+GROUP BY s.author
+ORDER BY total_votes DESC
+LIMIT 5;
 
 
 -- TOP 5 Movers in last 24 hours
@@ -184,17 +184,15 @@ WHERE NOT EXISTS (
 );
 
 
+SELECT COUNT(story_id)
+FROM (
+    SELECT
+        story_id,
+        MIN(record_time) AS first_record_time
+    FROM records
+    GROUP BY story_id
+) AS first_record_per_story
+WHERE first_record_time >= NOW() - INTERVAL '24 hours';
 
-WITH new_last_day_records AS(
-SELECT
-    COUNT(DISTINCT story_id) AS unique_story_count
-FROM records r1
-WHERE NOT EXISTS (
-    SELECT 1
-    FROM records r2
-    WHERE r1.story_id = r2.story_id
-      AND r2.record_time < NOW() - INTERVAL '24 hours'
-))
-SELECT
-    EXTRACT(HOUR FROM record_time) AS hour_of_day,
-    COUNT(*) AS new_story_count
+
+
