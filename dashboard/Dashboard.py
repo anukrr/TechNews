@@ -1,7 +1,8 @@
 """Streamlit dashboard for analysis of stories"""
 from os import environ
-from dotenv import load_dotenv
 from datetime import datetime, timedelta
+
+from dotenv import load_dotenv
 import streamlit as st
 import pandas as pd
 from sqlalchemy import create_engine, URL
@@ -30,7 +31,8 @@ st. set_page_config(page_title="Tech News Summariser",
 
 with st.sidebar:
     st.header("Topics")
-    selected_topics = st.multiselect("Filter", topics["name"].unique(),default=topics["name"].unique())
+    selected_topics = st.multiselect(
+        "Filter", topics["name"].unique(),default=topics["name"].unique())
     if len(selected_topics) > 1:
         topic_statement = f"AND topics.name in {tuple(selected_topics)}"
     elif len(selected_topics) == 1:
@@ -85,4 +87,3 @@ with col3:
     st.dataframe(hot_topics.head(3))
     st.subheader("❌ Whats Not")
     st.dataframe(hot_topics.tail(3).sort_values(by="count", ascending=True))
-
