@@ -6,6 +6,7 @@ from requests import get, exceptions
 from dotenv import load_dotenv
 
 BASE_URL = "https://hacker-news.firebaseio.com/v0/"
+STORY_COUNT = 200
 
 
 def get_top_stories(count: int) -> list:
@@ -41,11 +42,3 @@ def generate_dataframe(row_count: int) -> None:
     story_ids = get_top_stories(row_count)
     all_stories = [extract_story_info(id) for id in story_ids]
     return pd.DataFrame(all_stories)
-
-
-if __name__ == "__main__":
-    load_dotenv()
-    STORY_COUNT = 200
-
-    stories_df = generate_dataframe(STORY_COUNT)
-    stories_df.to_csv("extracted_stories.csv", index=False)

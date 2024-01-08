@@ -82,10 +82,3 @@ def clean_dataframe(stories_df: pd.DataFrame) -> pd.DataFrame:
         VALID_TOPIC_IDS), "topic_id"] = None
 
     return stories_df
-
-
-if __name__ == "__main__":
-
-    story_df = pd.read_csv("extracted_stories.csv", index_col=False)
-    clean_stories = clean_dataframe(story_df)
-    clean_stories.to_csv("transformed_stories.csv", index=False)
