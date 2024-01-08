@@ -5,3 +5,7 @@ pandas
 python-dotenv
 streamlit
 altair
+psycopg2-binary
+sqlalchemy
+matplotlib
+seaborn

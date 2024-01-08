@@ -8,5 +8,4 @@ RUN pip install -r requirements.txt
 
 COPY text_lambda.py ${LAMBDA_TASK_ROOT}
 
-
-CMD [ "text_lambda.handler" ]
+CMD [ "text_lambda.lambda_handler" ]
