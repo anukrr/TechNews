@@ -21,7 +21,7 @@ engine_url_object = URL.create("postgresql+psycopg2",
 engine = create_engine(engine_url_object)
 
 
-st. set_page_config(page_title="Tech News Summariser",
+st. set_page_config(page_title="The Full Stack",
                     page_icon="🌐",
                     layout="wide")
 
@@ -39,8 +39,9 @@ with st.sidebar:
         default=all_data["name"].dropna().unique())
 
 
-st.title("🌐 Tech News Summariser 🌐")
-st.write("Keeping you up to date with the latest news & trends in the world of tech")
+# st.title("🌐 Tech News Summariser 🌐")
+st.image("full-stack.png", width=700)
+st.subheader("Keeping you up to date with the latest news & trends in the world of tech", divider="grey")
 
 
 col1, col2, col3 = st.columns([3,0.5,2.25])
