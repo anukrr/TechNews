@@ -14,7 +14,7 @@ import threading
 
 
 BASE_URL = "https://hacker-news.firebaseio.com/v0/item/"
-
+CLEANR = re.compile('<.*?>')
 
 def get_parent_comment_ids(story: int) -> list:
     """Returns the id of comments from given story on Hacker News."""
@@ -94,26 +94,6 @@ def gauge_chart():
     return st.plotly_chart(fig)
 
 
-
-# table to show comments thatcause most discussion 
-def cycle_text(text_list, interval=5):
-    index = 0
-    while True:
-        st.text(text_list[index])
-        time.sleep(interval)
-        index = (index + 1) % len(text_list)
-
-
-def cycle_text(text_list, interval=2):
-    index = 0
-    text_container = st.empty()  # Create an empty container to hold the text
-
-    while True:
-        text_container.text(text_list[index])
-        time.sleep(interval)
-        index = (index + 1) % len(text_list)
-
-
 if __name__ == "__main__":
     st.set_page_config(page_title="TechNews Dashboard",
                    page_icon=":bar_chart:", layout="wide")
@@ -122,15 +102,7 @@ if __name__ == "__main__":
 
     load_dotenv()
     gauge_chart()
+
     
-    # st.text(f'')
-    st.title("Cycling Text Box")
-
-    text_list = ["Text 1", "Text 2", "Text 3"]
-    cycle_text(text_list)
-
-    # st.thread(target=cycle_text, args=(text_list,))
-    # thread = threading.Thread(target=cycle_text, args=(text_list,))
-    # thread.start()
         
 
