@@ -31,9 +31,9 @@ def get_comment_list(story: int):
     return comment_list
 
 
-def get_story_sentiment(story_id: str):
+def get_story_sentiment(story_id: int):
     """Performs sentiment analysis for a given story."""
-    comment_list = get_comment_list(int(story_id))
+    comment_list = get_comment_list(story_id)
     sentiment_list = []
     for comment in comment_list:
         blob = TextBlob(str(comment))
@@ -77,20 +77,18 @@ def generate_sentiment_gauge(value: int):
     return fig
 
 
-def gauge_chart():
+def make_gauge_chart(input_story_id: int):
     '''Bar chart showing transaction count per truck.'''
 
-    input_story_id = '38865518'
-
     value = get_story_sentiment(input_story_id)
-    fig = generate_sentiment_gauge(value)
+    gauge_fig = generate_sentiment_gauge(value)
     # st.plotly_chart(sentiment_fig)
-    return st.plotly_chart(fig)
+    return st.plotly_chart(gauge_fig)
 
 
 if __name__ == "__main__":
-    st.set_page_config(page_title="TechNews Dashboard",
-                       page_icon=":bar_chart:", layout="wide")
 
-    st.title(':truck: :moneybag: Truck Transactions :truck: :moneybag:')
-    gauge_chart()
+    input_story_id = 38865518
+
+    st.title('Test gauge helper file \n')
+    make_gauge_chart(input_story_id)
