@@ -37,6 +37,7 @@ def test_clean_empty_input():
         clean_dataframe()
 
 
+
 def test_clean_int_input():
     """Tests exception raised if wrong input type provided."""
     with pytest.raises(Exception):

@@ -51,7 +51,6 @@ def test_df_generated():
     assert isinstance(generate_dataframe(5), pandas.core.frame.DataFrame)
 
 
-
 def test_get_stories_success(requests_mock):
     """Test successful retrieval of stories from API."""
 
