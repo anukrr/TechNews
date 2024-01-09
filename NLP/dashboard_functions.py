@@ -112,13 +112,7 @@ def cycle_text(text_list, interval=2):
         text_container.text(text_list[index])
         time.sleep(interval)
         index = (index + 1) % len(text_list)
-    # while True:
-    #     text = (text_list[index])
-    #     time.sleep(interval)
-    #     index = (index + 1) % len(text_list)
 
-
-# st.markdown might let you add extra formattting vs st.text
 
 if __name__ == "__main__":
     st.set_page_config(page_title="TechNews Dashboard",
