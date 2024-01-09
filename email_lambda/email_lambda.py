@@ -87,7 +87,7 @@ def summarise_stories(url_list:list[str]) -> str: # not sure the type of the out
     user_content_spec = f"""Write a summary approximately 200 words in length,
                         that gives key insights for articles in list: {url_list},
                         return ONLY a string containing a list of dictionaries with keys 'article_title' which
-                        includes the name of the article and 'summary for each article'."""
+                        includes the name of the article and 'summary'."""
 
     client = openai.OpenAI(api_key=environ["OPENAI_API_KEY"])
     try:
@@ -127,51 +127,7 @@ def make_article_box_html(article: dict) -> str:
             </div></body>"""
 
 
-# def generate_html_string(summaries_dict: dict) -> str:
-#     """Generates a html string for the contents of an email."""
-#     html_start = """<html>
-#                         <head>
-#                         </head>
-#                         <body>
-#                         <center class="wrapper">
-#                             <table class="main" width="700">
-#                             <tr>
-#                                 <td height="8" style="background-color: #F0F8FF;">
-#                                 </td>
-#                                 </tr>
-#                         <h1> Daily Brief</h1>
-#                         <h1 style="color:#5F9EA0">Top Stories</h1>"""
-#     html_end = """</body>
-#                     </table>
-#                 </center>
-#                 </body>
-#                 </html>"""
-
-#     # --- DO NOT DELETE ---
-#     # ORIGINAL WAY TO MAKE ARTICLE_LIST
-#     #
-#     #
-#     # articles_list = []
-#     # for article in summaries_dict:
-#     #     article_box = f"""<body style="border-width:3px;
-#     #                         border-style:solid; border-color:#E6E6FA;
-#     #                         border-radius: 12px;
-#     #                         padding: 20px;
-#     #                         border-spacing: 10px 2em;">
-#     #                     <h2 style="color: #008B8B;"> {article.get('article_title')}</h2>
-#     #                     <p style="color:#6495ED"> {article.get('summary')} </p> </body>"""
-#     #     articles_list.append(article_box)
-
-#     # --- NEW WAY WE SHOULD TRY ---
-#     articles_list = [make_article_box_html(article) for article in summaries_dict]
-
-#     articles_string = ' '.join(articles_list)
-#     html_full = html_start + articles_string + html_end
-
-#     return html_full
-
-
-def generate_html_string(dict_of_summary: list[dict]) -> str:
+def generate_html_string(dict_of_summary: list[dict], df) -> str:
     '''Generates HTML string for the email.'''
     html_start = f"""<html>
     <head>
@@ -192,12 +148,13 @@ def generate_html_string(dict_of_summary: list[dict]) -> str:
     </body>
     </html>"""
     articles_list = []
-    for article in dict_of_summary:
-        title = article.get('article_title')
-        summary = article.get('summary')
-        creation_date = article.get('creation_date')
-        story_url = article.get('story_url')
-        author = article.get('author')
+    
+    for i in range(0,5):
+        title = df.loc[i].get('title')
+        summary = dict_of_summary[i].get('summary')
+        creation_date = df.loc[i].get('creation_date')
+        creation_date = creation_date.strftime("%d/%m/%Y")
+        story_url = df.loc[i].get('story_url')
         # corrected_date = creation_date.strftime("%d/%m/%Y")
 
         article_box = f"""<body style="border-width:3px; border-style:solid; border-color:#E6E6FA; border-radius: 12px; padding: 20px; border-spacing: 10px 2em;">
@@ -252,52 +209,42 @@ def send_email(html_string: str):
     return response
 
 
-# def handler(): #event=None, context=None
-#     """Handler function."""
-#     load_dotenv()
-#     summaries_data = generate_summaries_dict()
-#     html_str = generate_html_string(summaries_data)
-#     return send_email(html_str)
+def handler(): #event=None, context=None
+    """Handler function."""
+    load_dotenv()
+    summaries_data = generate_summaries_dict()
+    html_str = generate_html_string(summaries_data)
+    return send_email(html_str)
 
 load_dotenv()
 
-# html_str = generate_html_string(summaries_data)
-# print(html_str)
-# send_email(html_str)
+# summary = """[
+#     {
+#         "article_title": "Polaris Office's Infographics, Documents, and Spreadsheets",
+#         "summary": "Polaris Office introduces a tool to create infographics, documents, and spreadsheets. It provides templates and features for a variety of business needs. Polaris Office aims to enhance productivity and efficiency for users."
+#     },
+#     {
+#         "article_title": "United Finds Loose Bolts on Plug Doors During 737 Max 9 Inspections",
+#         "summary": "During inspections of 737 Max 9 aircraft, United Airlines discovered loose bolts on plug doors and undertook rectification measures. The issue did not lead to any in-service incidents, but it highlights the importance of thorough safety inspections."
+#     },
+#     {
+#         "article_title": "Dive: A Tool for Exploring Docker Images",
+#         "summary": "Dive is a user-friendly tool for exploring Docker images. It provides visualizations and insights into image layers, helping users understand their composition and optimize image size. Dive is an open-source project available on GitHub."
+#     },
+#     {
+#         "article_title": "Jose Valim's Tweet about Elixir's 10th Birthday",
+#         "summary": "Jose Valim shares a tweet celebrating Elixir's 10th birthday, highlighting its impressive growth and community support over the years. The tweet reflects on Elixir's impact and success as a programming language."
+#     },
+#     {
+#         "article_title": "What PWA Can Do: Exploring Progressive Web Applications' Capabilities",
+#         "summary": "This resource provides insights into the capabilities of Progressive Web Applications (PWAs), including offline functionality, push notifications, and access to device features. It showcases the potential for PWAs to deliver app-like experiences on the web."
+#     }
+# ]"""
 df = load_stories_data()
-creation_date = df.loc[0]['creation_date']
-corrected_form = creation_date.strftime("%d/%m/%Y")
-print(corrected_form)
-# print(creation_date[0:10])
-# url_list = get_url_list(df)
-# summary = str(summarise_stories(url_list))
+# url = get_url_list(df)
+# summary = summarise_stories(url)
+summaries_dict = generate_summaries_dict()
 # print(summary)
-summary = """[
-    {
-        "article_title": "Polaris Office's Infographics, Documents, and Spreadsheets",
-        "summary": "Polaris Office introduces a tool to create infographics, documents, and spreadsheets. It provides templates and features for a variety of business needs. Polaris Office aims to enhance productivity and efficiency for users."
-    },
-    {
-        "article_title": "United Finds Loose Bolts on Plug Doors During 737 Max 9 Inspections",
-        "summary": "During inspections of 737 Max 9 aircraft, United Airlines discovered loose bolts on plug doors and undertook rectification measures. The issue did not lead to any in-service incidents, but it highlights the importance of thorough safety inspections."
-    },
-    {
-        "article_title": "Dive: A Tool for Exploring Docker Images",
-        "summary": "Dive is a user-friendly tool for exploring Docker images. It provides visualizations and insights into image layers, helping users understand their composition and optimize image size. Dive is an open-source project available on GitHub."
-    },
-    {
-        "article_title": "Jose Valim's Tweet about Elixir's 10th Birthday",
-        "summary": "Jose Valim shares a tweet celebrating Elixir's 10th birthday, highlighting its impressive growth and community support over the years. The tweet reflects on Elixir's impact and success as a programming language."
-    },
-    {
-        "article_title": "What PWA Can Do: Exploring Progressive Web Applications' Capabilities",
-        "summary": "This resource provides insights into the capabilities of Progressive Web Applications (PWAs), including offline functionality, push notifications, and access to device features. It showcases the potential for PWAs to deliver app-like experiences on the web."
-    }
-]"""
-summary_dict = json.loads(summary)
-# summaries_dict = generate_summaries_dict()
-html_str = generate_html_string(summary_dict)
+# df = load_stories_data()
+html_str = generate_html_string(summaries_dict, df)
 send_email(html_str)
-
-# print(summary)
-
