@@ -99,35 +99,31 @@ def show_top_authors(connection):
 
     df1 = pd.read_sql(MOST_AUTHOR_CONTRIBUTIONS, connection)
     df2 = pd.read_sql(MOST_POPULAR_AUTHORS, connection)
-    # Display the results in Streamlit
     st.title("Top Authors Overview")
 
     fig, ax = plt.subplots(2, 1, figsize=(10, 12))
 
-    # Bar chart for stories created
     ax[0].bar(df1['author'], df1['stories_created'], color='skyblue')
     ax[0].set_title('Top Authors by Stories Created')
     ax[0].set_ylabel('Number of Stories Created')
     ax[0].set_xlabel('Authors')
     ax[0].grid(axis='y', linestyle='--', alpha=0.7)
 
-    # Bar chart for total votes
     ax[1].bar(df2['author'], df2['all_stories_total_votes'], color='lightcoral')
     ax[1].set_title('Top Authors by Total Votes')
     ax[1].set_ylabel('Total Votes')
     ax[1].set_xlabel('Authors')
     ax[1].grid(axis='y', linestyle='--', alpha=0.7)
 
-    # Adjust layout to prevent overlap
     plt.tight_layout()
 
-    # Display the plots in Streamlit
     st.pyplot(fig)
 
 
 def show_five_biggest_movers(connection):
     """Produces line chart of 5 biggest movers in the last 24 hours
     """
+
     df_records = pd.read_sql(FIVE_BIGGEST_MOVERS, connection)
     df_records['record_time'] = pd.to_datetime(df_records['record_time'])
 
@@ -146,7 +142,6 @@ def show_five_biggest_movers(connection):
     ax.set_xticklabels(df_records['record_time'], rotation=45, ha='right')
     ax.xaxis.set_major_formatter(mdates.DateFormatter('%d/%m %H:%M'))
 
-    # Display the plot in Streamlit
     st.pyplot(fig)
 
 
