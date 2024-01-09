@@ -216,7 +216,7 @@ def handler(): #event=None, context=None
     html_str = generate_html_string(summaries_data)
     return send_email(html_str)
 
-load_dotenv()
+# load_dotenv()
 
 # summary = """[
 #     {
@@ -240,11 +240,11 @@ load_dotenv()
 #         "summary": "This resource provides insights into the capabilities of Progressive Web Applications (PWAs), including offline functionality, push notifications, and access to device features. It showcases the potential for PWAs to deliver app-like experiences on the web."
 #     }
 # ]"""
-df = load_stories_data()
-# url = get_url_list(df)
-# summary = summarise_stories(url)
-summaries_dict = generate_summaries_dict()
-# print(summary)
 # df = load_stories_data()
-html_str = generate_html_string(summaries_dict, df)
-send_email(html_str)
+# # url = get_url_list(df)
+# # summary = summarise_stories(url)
+# summaries_dict = generate_summaries_dict()
+# # print(summary)
+# # df = load_stories_data()
+# html_str = generate_html_string(summaries_dict, df)
+# send_email(html_str)
