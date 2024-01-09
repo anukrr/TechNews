@@ -1,5 +1,7 @@
 import re
 import html
+import time
+import threading
 import streamlit as st
 from requests import get
 
@@ -28,7 +30,7 @@ def get_top_5_most_replied_parent_comments(story_id: int):
             BASE_URL + f"{parent_comment_id}.json", timeout=30).json()
         comment_text = comment_info.get("text")
         comment_title = format_html(
-            comment_text[:60]) if comment_text else "No title available"
+            comment_text) if comment_text else "No title available"
         number_of_children = 0
         kids_info = comment_info.get("kids")
         if kids_info is not None:
@@ -42,23 +44,22 @@ def get_top_5_most_replied_parent_comments(story_id: int):
     return sorted_list[:5]
 
 
-def cycle_text(text_list, interval=2):
+def cycle_text(text_list, interval=4):
     index = 0
-    placeholder = st.empty()
-
+    box = st.empty()
     while True:
-        placeholder.text(text_list[index])
+        box.write(f'{text_list[index]}')
+        # st.text(text_list[index])
+        time.sleep(interval)
         index = (index + 1) % len(text_list)
-        st.experimental_rerun()
-        st.sleep(interval)
 
+def get_string_list():
+    return [f"{parent_comment.get('title')} \n\n [{parent_comment.get('number_of_children')} replies]" for parent_comment in top_5_comments]
 
 if __name__ == "__main__":
-    st.title("Cycling Text Box")
+    st.title("What people are saying / hot discussion points:")
 
     top_5_comments = get_top_5_most_replied_parent_comments(38865518)
-    text_list = [
-        f"{parent_comment.get('title')} - - - [{parent_comment.get('number_of_children')} replies]" for parent_comment in top_5_comments
-    ]
+    text_list = get_string_list()
 
     cycle_text(text_list)
