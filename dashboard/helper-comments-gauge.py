@@ -20,3 +20,9 @@ def get_comment_text(comment: int) -> str:
         BASE_URL + f"{comment}.json", timeout=30).json()
     comment = comment_info.get("text")
     return comment
+
+
+def get_comment_list(story: int):
+    comments = get_parent_comment_ids(story)
+    comment_list = [get_comment_text(comment) for comment in comments]
+    return comment_list
