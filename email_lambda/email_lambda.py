@@ -11,6 +11,7 @@ import psycopg2
 import openai
 
 
+
 DATE_TODAY = date.today().strftime("%A %B %d %Y")
 
 
@@ -51,11 +52,12 @@ def load_stories_data() -> pd.DataFrame:
                 MAX(score) - MIN(score) AS score_change,
                 stories.title,
                 stories.story_url,
-                MAX(record_time) AS latest_update
+                MAX(record_time) AS latest_update,
+                stories.creation_date
             FROM records
             JOIN stories ON records.story_id = stories.story_id
             WHERE record_time >= NOW() - INTERVAL '24 hours'
-            GROUP BY records.story_id, stories.title, stories.story_url
+            GROUP BY records.story_id, stories.title, stories.story_url, stories.creation_date
             ORDER BY score_change
                 DESC LIMIT 5
             ;
@@ -70,11 +72,21 @@ def get_url_list(dataframe: pd.DataFrame) -> list:
 
 def summarise_stories(url_list:list[str]) -> str: # not sure the type of the output here
     """Uses the OpenAI API to generate summaries for a list of URLs."""
-    system_content_spec = """You are a newsletter writer, producing a newsletter
-                        similar to https://www.morningbrew.com/daily/issues/latest."""
+    system_content_spec = """You are a newsletter writer, producing summarised news articles similar to this:The days of empty car dealer lots and high sticker prices may be in the US auto industry’s rearview mirror.
+                        Following a 2023 sales rebound, industry analysts predict a “return to 
+                        normalcy” in the US car market, 
+                        according to a new report from Cox Automotive.
+                        The momentum of 2023 ended in a Q4 milestone in the EV race: Chinese EV 
+                        maker BYD unseated Tesla as the world’s top all-electric vehicle seller. Tesla had a strong quarter, notching a record 
+                        484,500 deliveries globally. But BYD clinched the top spot with some 526,000 all-electric vehicle sales in Q4.
+                        In the US, analysts expect EV sales to grow in 2024, though likely at a
+                         slower pace than they did in 2023.
+                        “We’re right back to where we were as an industry” before the pandemic, 
+                        Charlie Chesbrough, Cox Automotive’s senior economist, told Tech Brew. “Inventories are 
+                        starting to build again. Dealer lots are starting to get full again. And discounting and incentives are back in full force.”."""
     user_content_spec = f"""Write a summary approximately 200 words in length,
                         that gives key insights for articles in list: {url_list},
-                        return a list of dictionaries with keys 'article_title' which
+                        return ONLY a string containing a list of dictionaries with keys 'article_title' which
                         includes the name of the article and 'summary for each article'."""
 
     client = openai.OpenAI(api_key=environ["OPENAI_API_KEY"])
@@ -107,7 +119,12 @@ def make_article_box_html(article: dict) -> str:
                      padding: 20px;
                      border-spacing: 10px 2em;">
        <h2 style="color: #008B8B;">{article.get('article_title')}</h2>
-       <p style="color:#6495ED">{article.get('summary')}</p> </body>"""
+       <p style="color:#6495ED">{article.get('summary')}</p>  <div>
+        <p style="margin-bottom:0;">
+            <a hred={article.get('story_url')}> Read Article </a> |
+            <p> "{article.get('creation_date')}" </p> |
+            <p> "{article.get('author')}" </p>
+            </div></body>"""
 
 
 # def generate_html_string(summaries_dict: dict) -> str:
@@ -154,12 +171,8 @@ def make_article_box_html(article: dict) -> str:
 #     return html_full
 
 
-
-def generate_html_string() -> str:
+def generate_html_string(dict_of_summary: list[dict]) -> str:
     '''Generates HTML string for the email.'''
-    url_list = get_url_list()
-    summary = summarise_story(url_list)
-    dict_of_summary = json.loads(f"{summary}")
     html_start = f"""<html>
     <head>
     </head>
@@ -185,15 +198,16 @@ def generate_html_string() -> str:
         creation_date = article.get('creation_date')
         story_url = article.get('story_url')
         author = article.get('author')
+        # corrected_date = creation_date.strftime("%d/%m/%Y")
 
         article_box = f"""<body style="border-width:3px; border-style:solid; border-color:#E6E6FA; border-radius: 12px; padding: 20px; border-spacing: 10px 2em;">
         <h2 style="color: #008B8B;"> {title}</h2>
         <p style="color:#6495ED"> {summary} </p>
         <div>
         <p style="margin-bottom:0;">
-            <a hred={story_url}> Read Article </a> |
-            <p> "{creation_date}" </p> |
-            <p> "{author}" </p>
+            <a href="{story_url}"> Read Article </a> |
+            <a"> {creation_date} </a> |
+            <a href=""> source </a>
             </div>
             </body>"""
         articles_list.append(article_box)
@@ -238,9 +252,52 @@ def send_email(html_string: str):
     return response
 
 
-def handler(): #event=None, context=None
-    """Handler function."""
-    load_dotenv()
-    summaries_data = generate_summaries_dict()
-    html_str = generate_html_string(summaries_data)
-    return send_email(html_str)
+# def handler(): #event=None, context=None
+#     """Handler function."""
+#     load_dotenv()
+#     summaries_data = generate_summaries_dict()
+#     html_str = generate_html_string(summaries_data)
+#     return send_email(html_str)
+
+load_dotenv()
+
+# html_str = generate_html_string(summaries_data)
+# print(html_str)
+# send_email(html_str)
+df = load_stories_data()
+creation_date = df.loc[0]['creation_date']
+corrected_form = creation_date.strftime("%d/%m/%Y")
+print(corrected_form)
+# print(creation_date[0:10])
+# url_list = get_url_list(df)
+# summary = str(summarise_stories(url_list))
+# print(summary)
+summary = """[
+    {
+        "article_title": "Polaris Office's Infographics, Documents, and Spreadsheets",
+        "summary": "Polaris Office introduces a tool to create infographics, documents, and spreadsheets. It provides templates and features for a variety of business needs. Polaris Office aims to enhance productivity and efficiency for users."
+    },
+    {
+        "article_title": "United Finds Loose Bolts on Plug Doors During 737 Max 9 Inspections",
+        "summary": "During inspections of 737 Max 9 aircraft, United Airlines discovered loose bolts on plug doors and undertook rectification measures. The issue did not lead to any in-service incidents, but it highlights the importance of thorough safety inspections."
+    },
+    {
+        "article_title": "Dive: A Tool for Exploring Docker Images",
+        "summary": "Dive is a user-friendly tool for exploring Docker images. It provides visualizations and insights into image layers, helping users understand their composition and optimize image size. Dive is an open-source project available on GitHub."
+    },
+    {
+        "article_title": "Jose Valim's Tweet about Elixir's 10th Birthday",
+        "summary": "Jose Valim shares a tweet celebrating Elixir's 10th birthday, highlighting its impressive growth and community support over the years. The tweet reflects on Elixir's impact and success as a programming language."
+    },
+    {
+        "article_title": "What PWA Can Do: Exploring Progressive Web Applications' Capabilities",
+        "summary": "This resource provides insights into the capabilities of Progressive Web Applications (PWAs), including offline functionality, push notifications, and access to device features. It showcases the potential for PWAs to deliver app-like experiences on the web."
+    }
+]"""
+summary_dict = json.loads(summary)
+# summaries_dict = generate_summaries_dict()
+html_str = generate_html_string(summary_dict)
+send_email(html_str)
+
+# print(summary)
+
