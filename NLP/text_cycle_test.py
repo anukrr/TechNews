@@ -1,20 +1,9 @@
 import re
-import pprint
-from bs4 import BeautifulSoup
 import html
-from os import environ
-from dotenv import load_dotenv
-import matplotlib.pyplot as plt
-import streamlit as st
-from requests import get
-import json
-import textblob
-from textblob import TextBlob
-import plotly.graph_objects as go
-import plotly.io as pio
-pio.templates.default = 'plotly'
 import time
 import threading
+import streamlit as st
+from requests import get
 
 
 BASE_URL = "https://hacker-news.firebaseio.com/v0/item/"
@@ -29,11 +18,8 @@ def get_comment_ids(story: int) -> list:
 
 
 def format_html(text_string: str):
-    # Unescape HTML entities
-    unescaped_text = html.unescape(text_string)
-    # use regex to get rid of html tags
-    clean_text = re.sub(CLEANR, '', unescaped_text)
-    return clean_text
+    # Unescape HTML entities and remove HTML tags
+    return re.sub(CLEANR, '', html.unescape(text_string))
 
 
 def get_top_5_most_replied_parent_comments(story_id: int):
@@ -68,10 +54,13 @@ def get_top_5_most_replied_parent_comments(story_id: int):
 
 
 # table to show comments thatcause most discussion 
+####WORKING CYCLE TEXT
 def cycle_text(text_list, interval=4):
     index = 0
+    box = st.empty()
     while True:
-        st.text(text_list[index])
+        box.write(f'{text_list[index]}')
+        # st.text(text_list[index])
         time.sleep(interval)
         index = (index + 1) % len(text_list)
 
@@ -81,8 +70,11 @@ if __name__ == "__main__":
 
     st.title("Cycling Text Box")
 
-
-    text_list = ['text','text2','text3']
+    text_list = ['> efficiently converts optical power to electrical powerDamn, I thought it was just  - - - [8 replies]',
+                 'So... I have a really interesting anecdote on "Power over fiber"In ~20 - - - [5 replies]',
+                 'From a reply:  “wow. I expected expensive (two digits), but indeed: these are _very_ expen - - - [4 replies]',
+                 'How much optical power could be safely carried over such an optical fiber in theory? What  - - - [4 replies]',
+                 "What's the use-case here? That's the biggest optoisolator I've ever heard o - - - [4 replies]"]
     cycle_text(text_list)
     
 
