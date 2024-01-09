@@ -1,24 +1,33 @@
+import re
+import html
 import streamlit as st
-import time
+from requests import get
+import pandas as pd
+from gauge_plot import gauge_chart
+from top_comments import generate_comments_df, get_top_5_most_replied_parent_comments
 
-st.set_page_config(layout="wide")
-st.title('Logging in Text Box')
 
-# creating a placeholder for the fixed sized textbox
-logtxtbox = st.empty()
-logtxt = 'start'
-logtxtbox.text_area("Logging: ", logtxt, height=500)
+if __name__ == "__main__":
+    
+    # need to error filter for URLs not found at hackernews
+    st.subheader('URL NLP analysis', divider='rainbow')
+    url = st.text_input('Enter a URL', 'url')
+    st.write('Article', url)
 
-end_of_loop = False
-counter = 1
+    st.subheader('NLP gauge chart.', divider='rainbow')
+    gauge_chart()
 
-while (end_of_loop == False):
+    st.subheader('URL NLP analysis', divider='rainbow')
+    st.write("Chec out the top talking points for this story:")
 
-    logtxt += 'Counter [' + str(counter) + '] \n'
-    logtxtbox.text_area("Logging: ", logtxt, height=500)
+    story_id = 38865518
+    top_5_comments = get_top_5_most_replied_parent_comments(story_id)
 
-    counter += 1
-    if (counter > 100):
-        end_of_loop = True
+    # text_list = get_string_list()
+    # cycle_text(text_list)
 
-    time.sleep(0.2)
+    df = generate_comments_df(story_id)
+    for index, row in df.iterrows():
+        with st.expander(f"{row['Comment'][0:50]} {index + 1} - Replies: {row['Replies']}"):
+            st.write(row['Comment'])
+    

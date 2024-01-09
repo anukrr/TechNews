@@ -5,7 +5,7 @@ import threading
 import streamlit as st
 from requests import get
 import pandas as pd
-from guage
+
 BASE_URL = "https://hacker-news.firebaseio.com/v0/item/"
 CLEANR = re.compile('<.*?>')
 
@@ -66,6 +66,9 @@ def generate_comments_df(top_comments: list) -> pd.DataFrame:
     return df
 
 if __name__ == "__main__":
+    st.set_page_config(page_title="Tech News Dashboard",
+                       page_icon=":bar_chart:", layout="wide")
+    
     st.subheader('URL NLP analysis', divider='rainbow') # need to error filter for URLs not found at hackernews
     url = st.text_input('Enter a URL', 'url')
     st.write('Article', url)

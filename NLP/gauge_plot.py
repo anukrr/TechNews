@@ -11,6 +11,7 @@ import plotly.io as pio
 pio.templates.default = 'plotly'
 import time
 import threading
+import re
 
 
 BASE_URL = "https://hacker-news.firebaseio.com/v0/item/"
