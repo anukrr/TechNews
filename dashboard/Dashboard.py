@@ -29,9 +29,10 @@ st. set_page_config(page_title="Tech News Summariser",
 with st.sidebar:
     st.header("🕒 Timeframe")
     timeframe = st.selectbox("Filter", ["hour","day","week"])
-
     all_data = generate_dataframe(engine, timeframe)
+
     st.divider()
+
     st.header("🔎 Topics")
     selected_topics = st.multiselect(
         "Filter", all_data["name"].dropna().unique(),
@@ -39,6 +40,7 @@ with st.sidebar:
 
 
 st.title("🌐 Tech News Summariser 🌐")
+st.write("Keeping you up to date with the latest news & trends in the world of tech")
 
 
 col1, col2, col3 = st.columns([3,0.5,2.25])
