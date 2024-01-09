@@ -9,6 +9,8 @@ from textblob import TextBlob
 import plotly.graph_objects as go
 import plotly.io as pio
 pio.templates.default = 'plotly'
+import time
+import threading
 
 
 BASE_URL = "https://hacker-news.firebaseio.com/v0/item/"
@@ -93,8 +95,30 @@ def gauge_chart():
 
 
 
-# 
+# table to show comments thatcause most discussion 
+def cycle_text(text_list, interval=5):
+    index = 0
+    while True:
+        st.text(text_list[index])
+        time.sleep(interval)
+        index = (index + 1) % len(text_list)
 
+
+def cycle_text(text_list, interval=2):
+    index = 0
+    text_container = st.empty()  # Create an empty container to hold the text
+
+    while True:
+        text_container.text(text_list[index])
+        time.sleep(interval)
+        index = (index + 1) % len(text_list)
+    # while True:
+    #     text = (text_list[index])
+    #     time.sleep(interval)
+    #     index = (index + 1) % len(text_list)
+
+
+# st.markdown might let you add extra formattting vs st.text
 
 if __name__ == "__main__":
     st.set_page_config(page_title="TechNews Dashboard",
@@ -105,4 +129,14 @@ if __name__ == "__main__":
     load_dotenv()
     gauge_chart()
     
+    # st.text(f'')
+    st.title("Cycling Text Box")
+
+    text_list = ["Text 1", "Text 2", "Text 3"]
+    cycle_text(text_list)
+
+    # st.thread(target=cycle_text, args=(text_list,))
+    # thread = threading.Thread(target=cycle_text, args=(text_list,))
+    # thread.start()
+        
 
