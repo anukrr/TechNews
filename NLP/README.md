@@ -12,6 +12,8 @@ Why parent comments only? Because an unpopular opinion could generate a lot of n
 #NLP metrics
 - TextBlob; -1(negative sentiment) to +1(positive sentiment)
 
+![Alt text](image-1.png)
+
 <!-- 
 TextBlob returns polarity and subjectivity of a sentence. 
 Polarity lies between [-1,1], -1 defines a negative sentiment and 1 defines a positive sentiment. 
