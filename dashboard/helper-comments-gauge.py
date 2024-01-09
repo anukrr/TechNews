@@ -3,6 +3,7 @@
 import requests
 from textblob import TextBlob
 import plotly.graph_objects as go
+import streamlit as st
 
 BASE_URL = "https://hacker-news.firebaseio.com/v0/item/"
 
@@ -74,3 +75,22 @@ def generate_sentiment_gauge(value: int):
                }))
 
     return fig
+
+
+def gauge_chart():
+    '''Bar chart showing transaction count per truck.'''
+
+    input_story_id = '38865518'
+
+    value = get_story_sentiment(input_story_id)
+    fig = generate_sentiment_gauge(value)
+    # st.plotly_chart(sentiment_fig)
+    return st.plotly_chart(fig)
+
+
+if __name__ == "__main__":
+    st.set_page_config(page_title="TechNews Dashboard",
+                       page_icon=":bar_chart:", layout="wide")
+
+    st.title(':truck: :moneybag: Truck Transactions :truck: :moneybag:')
+    gauge_chart()
