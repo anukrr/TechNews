@@ -92,7 +92,7 @@ def summarise_stories(url_list:list[str]) -> str: # not sure the type of the out
     client = openai.OpenAI(api_key=environ["OPENAI_API_KEY"])
     try:
         response = client.chat.completions.create(
-            model=environ["GPT-MODEL"],
+            model='gpt-3.5-turbo-1106',
             messages=[
                 {"role": "system", "content": system_content_spec},
                 {"role": "user", "content": user_content_spec}],
