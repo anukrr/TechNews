@@ -42,3 +42,27 @@ SELECT * from records
 WHERE record_time >= NOW() - INTERVAL '1 hour')
 SELECT PERCENTILE_CONT(0.5) WITHIN GROUP(ORDER BY score) AS median_score FROM latest_scores;
 """
+
+FIVE_BIGGEST_MOVERS = """SELECT s.title, r.record_time, r.score
+FROM records r
+JOIN stories s ON r.story_id = s.story_id
+WHERE r.story_id IN (
+    SELECT r.story_id
+    FROM records r
+    JOIN stories s ON r.story_id = s.story_id
+    WHERE r.record_time >= NOW() - INTERVAL '24 hours'
+    GROUP BY r.story_id, s.title
+    ORDER BY MAX(r.score) - MIN(r.score) DESC
+    LIMIT 5
+)
+ORDER BY r.story_id, r.record_time;"""
+
+NEW_ENTRIES = """SELECT
+    COUNT(DISTINCT story_id) AS unique_story_count
+FROM records r1
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM records r2
+    WHERE r1.story_id = r2.story_id
+      AND r2.record_time < NOW() - INTERVAL '24 hours'
+);"""
