@@ -5,7 +5,11 @@ import threading
 import streamlit as st
 from requests import get
 import pandas as pd
-from guage
+from dotenv import load_dotenv
+from os import environ
+import psycopg2
+from psycopg2 import connect
+
 BASE_URL = "https://hacker-news.firebaseio.com/v0/item/"
 CLEANR = re.compile('<.*?>')
 
@@ -23,6 +27,7 @@ def format_html(text_string: str):
 
 
 def get_top_5_most_replied_parent_comments(story_id: int):
+    story_id = int(story_id)
     parent_comments = get_comment_ids(story_id)
 
     parent_comments_list = []
@@ -65,15 +70,47 @@ def generate_comments_df(top_comments: list) -> pd.DataFrame:
     df.columns = columns
     return df
 
+
+def get_db_connection():
+    """Returns a database connection."""
+    load_dotenv()
+    return psycopg2.connect(
+        host=environ["DB_HOST"],
+        port=environ["DB_PORT"],
+        database=environ["DB_NAME"],
+        user=environ["DB_USER"],
+        password=environ["DB_PASSWORD"]
+    )
+
+
+def get_story_id_from_url(url: str) -> pd.DataFrame:
+    """Loads re with greatest score change over last 24hrs from RDS.
+    Returns them as a Dataframe object."""
+    query = f"""
+        SELECT story_id
+        FROM stories
+        WHERE stories.story_url LIKE %(url)s;
+        """
+    df = pd.read_sql(query, con=get_db_connection(), params={"url": url})
+    series = df['story_id']
+    string = df['story_id'].to_string()
+    return string[2::]
+
+
 if __name__ == "__main__":
     st.subheader('URL NLP analysis', divider='rainbow') # need to error filter for URLs not found at hackernews
     url = st.text_input('Enter a URL', 'url')
+
+    story_id_from_url = get_story_id_from_url(url)
+
+    story_id = story_id_from_url 
+
     st.write('Article', url)
 
     st.subheader('URL NLP analysis', divider='rainbow')
     st.write("Chec out the top talking points for this story:")
 
-    story_id = 38865518
+
     top_5_comments = get_top_5_most_replied_parent_comments(story_id)
 
     
