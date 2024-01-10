@@ -3,17 +3,20 @@ import html
 import time
 import threading
 import streamlit as st
-from requests import get
+import requests
 import pandas as pd
 
 BASE_URL = "https://hacker-news.firebaseio.com/v0/item/"
 CLEANR = re.compile('<.*?>')
 
 
-def get_comment_ids(story: int) -> list:
-    story_info = get(BASE_URL + f"{story}.json", timeout=30).json()
-    comment_ids = story_info.get("kids")
-    return comment_ids
+def get_parent_comment_ids(story_id: int) -> list:
+    """
+    Returns the id of parent comments for a given story.
+    Note: in this case the API endpoint considers parent comments as "kids" of a story.
+    """
+    story_info = requests.get(BASE_URL + f"{story_id}.json", timeout=30).json()
+    return story_info.get("kids")  # Warning: see docstring
 
 
 def format_html(text_string: str):
@@ -23,11 +26,11 @@ def format_html(text_string: str):
 
 
 def get_top_5_most_replied_parent_comments(story_id: int):
-    parent_comments = get_comment_ids(story_id)
+    parent_comments = get_parent_comment_ids(story_id)
 
     parent_comments_list = []
     for parent_comment_id in parent_comments:
-        comment_info = get(
+        comment_info = requests.get(
             BASE_URL + f"{parent_comment_id}.json", timeout=30).json()
         comment_text = comment_info.get("text")
         comment_title = format_html(
@@ -68,7 +71,7 @@ if __name__ == "__main__":
     df = generate_comments_df(top_5_comments)
 
     for index, row in df.iterrows():
-        with st.expander(f"{row['Comment'][0:50]} {index + 1} - Replies: {row['Replies']}"):
+        with st.expander(f"{row['Comment'][0:60]} {index + 1} - Replies: {row['Replies']}"):
             st.write(row['Comment'])
         # align replies to right side
         # add poster username too
