@@ -1,7 +1,7 @@
+"""Helper script containing functions for comment expander (comment analysis)."""
+
 import re
 import html
-import time
-import threading
 import streamlit as st
 import requests
 import pandas as pd
@@ -43,7 +43,9 @@ def get_top_5_most_replied_parent_comments(story_id: int):
             number_of_children = len(kids_info)
 
         parent_comments_list.append(
-            {'title': comment_title, 'user': comment_user, 'number_of_children': number_of_children})  # add user name as well
+            {'title': comment_title,
+             'user': comment_user,
+             'number_of_children': number_of_children})  # add user name as well
 
     sorted_list = sorted(parent_comments_list, key=lambda comment_dict: comment_dict.get(
         'number_of_children', 0), reverse=True)
@@ -72,9 +74,9 @@ def make_expander(story_id: int) -> None:
 
 if __name__ == "__main__":
 
-    input_story_id = 38865518
+    STORY_ID = 38865518
 
     st.write("Check out the top talking points for this story:")
-    make_expander(input_story_id)
+    make_expander(STORY_ID)
 
     # align replies to right side

@@ -1,4 +1,4 @@
-"""Script containing helper functions for comment analysis sentiment gauge plot."""
+"""Helper script containing for functions for sentiment gauge plot (comment analysis)."""
 
 import requests
 from textblob import TextBlob
@@ -9,10 +9,8 @@ BASE_URL = "https://hacker-news.firebaseio.com/v0/item/"
 
 
 def get_parent_comment_ids(story_id: int) -> list:
-    """
-    Returns the id of parent comments for a given story.
-    Note: in this case the API endpoint considers parent comments as "kids" of a story.
-    """
+    """Returns the id of parent comments for a given story.
+    Note: in this case the API endpoint considers parent comments as "kids" of a story."""
     story_info = requests.get(BASE_URL + f"{story_id}.json", timeout=30).json()
     return story_info.get("kids")  # Warning: see docstring
 
@@ -25,6 +23,7 @@ def get_comment_text(comment: int) -> str:
 
 
 def get_comment_list(story_id: int):
+    """Returns a list of parent comments from a story_id."""
     comments = get_parent_comment_ids(story_id)
     return [get_comment_text(comment) for comment in comments]
 
