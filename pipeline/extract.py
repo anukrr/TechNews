@@ -42,3 +42,8 @@ def generate_dataframe(row_count: int) -> None:
     story_ids = get_top_stories(row_count)
     all_stories = [extract_story_info(id) for id in story_ids]
     return pd.DataFrame(all_stories)
+
+
+if __name__ == "__main__":
+    load_dotenv()
+    generate_dataframe(200).to_csv('outputs/extract.csv', index=False)

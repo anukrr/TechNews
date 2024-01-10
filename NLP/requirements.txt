@@ -1,0 +1,7 @@
+textblob
+psycopg2
+pandas
+python-dotenv
+requests
+streamlit 
+plotly

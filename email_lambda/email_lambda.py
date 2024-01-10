@@ -110,48 +110,95 @@ def make_article_box_html(article: dict) -> str:
        <p style="color:#6495ED">{article.get('summary')}</p> </body>"""
 
 
-def generate_html_string(summaries_dict: dict) -> str:
-    """Generates a html string for the contents of an email."""
-    html_start = """<html>
-                        <head>
-                        </head>
-                        <body>
-                        <center class="wrapper">
-                            <table class="main" width="700">
-                            <tr>
-                                <td height="8" style="background-color: #F0F8FF;">
-                                </td>
-                                </tr>
-                        <h1> Daily Brief</h1>
-                        <h1 style="color:#5F9EA0">Top Stories</h1>"""
-    html_end = """</body>
-                    </table>
-                </center>
-                </body>
-                </html>"""
+# def generate_html_string(summaries_dict: dict) -> str:
+#     """Generates a html string for the contents of an email."""
+#     html_start = """<html>
+#                         <head>
+#                         </head>
+#                         <body>
+#                         <center class="wrapper">
+#                             <table class="main" width="700">
+#                             <tr>
+#                                 <td height="8" style="background-color: #F0F8FF;">
+#                                 </td>
+#                                 </tr>
+#                         <h1> Daily Brief</h1>
+#                         <h1 style="color:#5F9EA0">Top Stories</h1>"""
+#     html_end = """</body>
+#                     </table>
+#                 </center>
+#                 </body>
+#                 </html>"""
 
-    # --- DO NOT DELETE ---
-    # ORIGINAL WAY TO MAKE ARTICLE_LIST
-    #
-    #
-    # articles_list = []
-    # for article in summaries_dict:
-    #     article_box = f"""<body style="border-width:3px;
-    #                         border-style:solid; border-color:#E6E6FA;
-    #                         border-radius: 12px;
-    #                         padding: 20px;
-    #                         border-spacing: 10px 2em;">
-    #                     <h2 style="color: #008B8B;"> {article.get('article_title')}</h2>
-    #                     <p style="color:#6495ED"> {article.get('summary')} </p> </body>"""
-    #     articles_list.append(article_box)
+#     # --- DO NOT DELETE ---
+#     # ORIGINAL WAY TO MAKE ARTICLE_LIST
+#     #
+#     #
+#     # articles_list = []
+#     # for article in summaries_dict:
+#     #     article_box = f"""<body style="border-width:3px;
+#     #                         border-style:solid; border-color:#E6E6FA;
+#     #                         border-radius: 12px;
+#     #                         padding: 20px;
+#     #                         border-spacing: 10px 2em;">
+#     #                     <h2 style="color: #008B8B;"> {article.get('article_title')}</h2>
+#     #                     <p style="color:#6495ED"> {article.get('summary')} </p> </body>"""
+#     #     articles_list.append(article_box)
 
-    # --- NEW WAY WE SHOULD TRY ---
-    articles_list = [make_article_box_html(article) for article in summaries_dict]
+#     # --- NEW WAY WE SHOULD TRY ---
+#     articles_list = [make_article_box_html(article) for article in summaries_dict]
+
+#     articles_string = ' '.join(articles_list)
+#     html_full = html_start + articles_string + html_end
+
+#     return html_full
 
 
-    articles_string = ' '.join(articles_list)
+
+def generate_html_string() -> str:
+    '''Generates HTML string for the email.'''
+    url_list = get_url_list()
+    summary = summarise_story(url_list)
+    dict_of_summary = json.loads(f"{summary}")
+    html_start = f"""<html>
+    <head>
+    </head>
+    <body>
+    <center class="wrapper">
+        <table class="main" width="700">
+        <tr>
+            <td height="8" style="background-color: #F0F8FF;">
+            </td>
+            </tr>
+    <h1> Daily Brief</h1>
+    <h1 style="color:#5F9EA0">Top Stories</h1>"""
+
+    html_end="""</body>
+        </table>
+    </center>
+    </body>
+    </html>"""
+    articles_list = []
+    for article in dict_of_summary:
+        title = article.get('article_title')
+        summary = article.get('summary')
+        creation_date = article.get('creation_date')
+        story_url = article.get('story_url')
+        author = article.get('author')
+
+        article_box = f"""<body style="border-width:3px; border-style:solid; border-color:#E6E6FA; border-radius: 12px; padding: 20px; border-spacing: 10px 2em;">
+        <h2 style="color: #008B8B;"> {title}</h2>
+        <p style="color:#6495ED"> {summary} </p>
+        <div>
+        <p style="margin-bottom:0;">
+            <a hred={story_url}> Read Article </a> |
+            <p> "{creation_date}" </p> |
+            <p> "{author}" </p>
+            </div>
+            </body>"""
+        articles_list.append(article_box)
+    articles_string = " ".join(articles_list)
     html_full = html_start + articles_string + html_end
-
     return html_full
 
 

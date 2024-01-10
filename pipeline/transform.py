@@ -1,5 +1,6 @@
 """This script cleans & builds upon the data collected from the Hacker News API."""
 from os import environ
+import psycopg2
 import logging
 from dotenv import load_dotenv
 import pandas as pd
@@ -13,6 +14,23 @@ client = openai.OpenAI(
 )
 
 pandarallel.initialize(progress_bar=True)
+
+
+def get_db_connection():
+    """Returns a database connection."""
+    try:
+        connection = psycopg2.connect(
+            host=environ["DB_HOST"],
+            port=environ["DB_PORT"],
+            database=environ["DB_NAME"],
+            user=environ["DB_USER"],
+            password=environ["DB_PASSWORD"]
+        )
+        return connection
+    except psycopg2.OperationalError as error:
+        # Log the specific error details for troubleshooting
+        logging.exception("Error connecting to the database: %s", error)
+        raise
 
 
 def handle_openai_errors(err):
@@ -33,34 +51,43 @@ def generate_topic(story_url: str) -> str:
     """Finds the most suitable topic for a url from a predefined list of topics 
     using the OpenAI API."""
 
-    system_content_spec = """
-        You are a classifying bot that can categorise urls into only these categories by returning the corresponding number:
-            1. Programming & Software Development
-            2. Game Development
-            3. Algorithms & Data Structures
-            4. Web Development & Browser Technologies
-            5. Computer Graphics & Image Processing
-            6. Operating Systems & Low-level Programming
-            7. Science & Research Publications
-            8. Literature & Book Reviews
-            9. Artificial Intelligence & Machine Learning
-            10. News & Current Affairs.
-            11. Miscellaneous & Interesting Facts"""
-    user_content_spec = f"""
-        Categorise this url into one of the listed categories: {story_url}.
-        Only state the category number and nothing else. Ensure your only output is a number."""
+    conn = get_db_connection()
+    topic_query = f"SELECT topic_id FROM stories WHERE story_url = '{story_url}';"
+    with conn.cursor() as cur:
+        cur.execute(topic_query)
+        topic_check = cur.fetchall()
 
-    try:
-        completion = client.chat.completions.create(
-            model=environ["GPT-MODEL"],
-            messages=[
-                {"role": "system",
-                 "content": system_content_spec},
-                {"role": "user",
-                 "content": user_content_spec}])
-        return completion.choices[0].message.content
-    except openai.APIError as error:
-        return handle_openai_errors(error)
+    if not topic_check:
+        system_content_spec = """
+            You are a classifying bot that can categorise urls into only these categories by returning the corresponding number:
+                1. Programming & Software Development
+                2. Game Development
+                3. Algorithms & Data Structures
+                4. Web Development & Browser Technologies
+                5. Computer Graphics & Image Processing
+                6. Operating Systems & Low-level Programming
+                7. Science & Research Publications
+                8. Literature & Book Reviews
+                9. Artificial Intelligence & Machine Learning
+                10. News & Current Affairs.
+                11. Miscellaneous & Interesting Facts"""
+        user_content_spec = f"""
+            Categorise this url into one of the listed categories: {story_url}.
+            Only state the category number and nothing else. Ensure your only output is a number."""
+
+        try:
+            completion = client.chat.completions.create(
+                model=environ["GPT-MODEL"],
+                messages=[
+                    {"role": "system",
+                     "content": system_content_spec},
+                    {"role": "user",
+                     "content": user_content_spec}])
+            return completion.choices[0].message.content
+        except openai.APIError as error:
+            return handle_openai_errors(error)
+
+    return str(topic_check[0][0])
 
 
 def clean_dataframe(stories_df: pd.DataFrame) -> pd.DataFrame:
@@ -75,10 +102,16 @@ def clean_dataframe(stories_df: pd.DataFrame) -> pd.DataFrame:
                                             "url": "story_url"})
     stories_df = stories_df[stories_df.type == "story"]
     stories_df = stories_df.drop(columns="type")
-    # Inserts topics
     stories_df["topic_id"] = stories_df["story_url"].parallel_apply(
         generate_topic)
     stories_df.loc[~stories_df["topic_id"].isin(
         VALID_TOPIC_IDS), "topic_id"] = None
 
     return stories_df
+
+
+if __name__ == "__main__":
+
+    stories = pd.read_csv('outputs/extract.csv', index_col=False)
+    stories = clean_dataframe(stories)
+    stories.to_csv('outputs/cleaned.csv', index=False)
