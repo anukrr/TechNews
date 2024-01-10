@@ -6,6 +6,8 @@ COPY . /dashboard
 
 RUN pip3 install -r requirements.txt
 
+RUN bash setup_nlp.sh
+
 EXPOSE 8501
 
 CMD ["streamlit", "run", "dashboard.py"]
