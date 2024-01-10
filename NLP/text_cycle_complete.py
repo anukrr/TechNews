@@ -43,10 +43,10 @@ def get_top_5_most_replied_parent_comments(story_id: int):
             number_of_children = len(kids_info)
 
         parent_comments_list.append(
-            {'title': comment_title, 'number_of_children': number_of_children}) # add user name as well
+            {'title': comment_title, 'number_of_children': number_of_children})  # add user name as well
 
     sorted_list = sorted(parent_comments_list, key=lambda comment_dict: comment_dict.get(
-        'number_of_children', 0), reverse=True) 
+        'number_of_children', 0), reverse=True)
     return sorted_list[:5]
 
 
@@ -66,7 +66,7 @@ def generate_comments_df(top_comments: list) -> pd.DataFrame:
     """"""
     data = get_top_5_most_replied_parent_comments(38865518)
     df = pd.DataFrame(data)
-    columns = ['Comment', 'Replies'] # add user column
+    columns = ['Comment', 'Replies']  # add user column
     df.columns = columns
     return df
 
@@ -83,37 +83,50 @@ def get_db_connection():
     )
 
 
-def get_story_id_from_url(url: str) -> pd.DataFrame:
-    """Loads re with greatest score change over last 24hrs from RDS.
-    Returns them as a Dataframe object."""
-    query = f"""
+# def get_story_id_from_url(url: str) -> pd.DataFrame:
+#     """Loads re with greatest score change over last 24hrs from RDS.
+#     Returns them as a Dataframe object."""
+#     query = f"""
+#         SELECT story_id
+#         FROM stories
+#         WHERE stories.story_url LIKE %(url)s;
+#         """
+#     df = pd.read_sql(query, con=get_db_connection(), params={"url": url})
+#     series = df['story_id']
+#     string = df['story_id'].to_string()
+#     return string[2::]
+
+def get_story_id_from_url(url: str) -> int:
+    """Gets the story_id from a url."""
+    query = """
         SELECT story_id
         FROM stories
-        WHERE stories.story_url LIKE %(url)s;
+        WHERE stories.story_url LIKE %s;
         """
-    df = pd.read_sql(query, con=get_db_connection(), params={"url": url})
-    series = df['story_id']
-    string = df['story_id'].to_string()
-    return string[2::]
+    conn = get_db_connection()
+    with conn.cursor() as cur:
+        cur.execute(query, (f'%{url}%',))
+        result = cur.fetchone()
+        if result:
+            return result[0]
 
 
 if __name__ == "__main__":
-    st.subheader('URL NLP analysis', divider='rainbow') # need to error filter for URLs not found at hackernews
+    # need to error filter for URLs not found at hackernews
+    st.subheader('URL NLP analysis', divider='rainbow')
     url = st.text_input('Enter a URL', 'url')
 
     story_id_from_url = get_story_id_from_url(url)
 
-    story_id = story_id_from_url 
+    story_id = story_id_from_url
 
     st.write('Article', url)
 
     st.subheader('URL NLP analysis', divider='rainbow')
     st.write("Chec out the top talking points for this story:")
 
-
     top_5_comments = get_top_5_most_replied_parent_comments(story_id)
 
-    
     # text_list = get_string_list()
     # cycle_text(text_list)
 
@@ -123,7 +136,3 @@ if __name__ == "__main__":
             st.write(row['Comment'])
         # align replies to right side
         # add poster username too
- 
-
-
-    
