@@ -1,7 +1,6 @@
 """Full comment analysis. Works by importing from helper files."""
 from os import environ
 import streamlit as st
-from sqlalchemy import create_engine, URL, exc
 from dotenv import load_dotenv
 import psycopg2
 
@@ -21,8 +20,8 @@ def get_db_connection():
         )
 
 
-def get_story_id_from_url(url: str) -> int:
-    """Gets the story_id from a url."""
+def get_story_id_from_url(story_url: str) -> int:
+    """Gets the story_id from a story_url."""
     query = """
         SELECT story_id
         FROM stories
@@ -30,7 +29,7 @@ def get_story_id_from_url(url: str) -> int:
         """
     conn = get_db_connection()
     with conn.cursor() as cur:
-        cur.execute(query, (f'%{url}%',))
+        cur.execute(query, (f'%{story_url}%',))
         result = cur.fetchone()
         if result:
             return result[0]
@@ -42,7 +41,7 @@ if __name__ == "__main__":
     st.subheader('Find out what people are saying!', divider='rainbow')
     url = st.text_input('Enter a URL')
     if url:
-    
+
         st.write('Article', url)
         INPUT_STORY_ID = get_story_id_from_url(url)
 
@@ -57,4 +56,3 @@ if __name__ == "__main__":
         st.write("Check out the top talking points for this story:")
         make_expander(INPUT_STORY_ID)
         print("Expanded")
-
