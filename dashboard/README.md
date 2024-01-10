@@ -1,7 +1,7 @@
 
 # URGENT
 # dashbiard setup - IMPORTANT
-in `/dashboard`, run the command `python3 -m textblob.download_corpora ` to install the necessary data for textblob NLP operations to work.
+In `/dashboard`, run the command `bash nlp_setup.sh` to install the NLP model used for comment analysis in the dashboard.
 Note: this should be added to dashboard image or it won't display gauge in the cloud!
 
 # Bonus ideas
