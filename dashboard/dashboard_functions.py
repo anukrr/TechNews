@@ -18,14 +18,14 @@ engine_url_object = URL.create("postgresql+psycopg2",
 
 
 def make_clickable(url, name):
-    return '<a href="{}" rel="noopener noreferrer" target="_blank">{}</a>'.format(url,name)
+    return '<a href="{}" rel="noopener noreferrer" target="_blank">{}</a>'.format(url, name)
 
 
 def generate_dataframe(engine: Engine, timeframe: str) -> pd.DataFrame:
     """Returns a comprehensive dataframe containing information on
     stories, records and topics."""
     current_time = datetime.now()
-    if timeframe not in ("hour","day", "week"):
+    if timeframe not in ("hour", "day", "week"):
         return None
     if timeframe == "hour":
         time_cutoff = current_time - timedelta(hours=1)
@@ -33,7 +33,7 @@ def generate_dataframe(engine: Engine, timeframe: str) -> pd.DataFrame:
         time_cutoff = current_time - timedelta(days=1)
     if timeframe == "week":
         time_cutoff = current_time - timedelta(days=7)
-    
+
     query = f"""
     SELECT records.record_id, records.story_id, records.score, records.comments, stories.title, stories.story_url, topics.name
     FROM records
@@ -44,7 +44,7 @@ def generate_dataframe(engine: Engine, timeframe: str) -> pd.DataFrame:
     WHERE record_time > '{time_cutoff}';"""
 
     dataframe = pd.read_sql(query, engine, index_col="record_id")
-    
+
     return dataframe
 
 
@@ -53,7 +53,8 @@ def top_stories_table(dataframe: pd.DataFrame, topics: list) -> pd.DataFrame:
     dataframe = dataframe[dataframe["name"].isin(topics)]
     idx = dataframe.groupby("story_id")["score"].idxmax()
     max_scores = dataframe.loc[idx]
-    max_scores = max_scores[["title","score","comments","story_url","name"]]
+    max_scores = max_scores[["title", "score",
+                             "comments", "story_url", "name"]]
     max_scores = max_scores.rename(columns={
         "title": "Title",
         "score": "Score",
@@ -70,7 +71,8 @@ def top_comments_table(dataframe: pd.DataFrame, topics: list) -> pd.DataFrame:
     dataframe = dataframe[dataframe["name"].isin(topics)]
     idx = dataframe.groupby("story_id")["comments"].idxmax()
     max_comments = dataframe.loc[idx]
-    max_comments = max_comments[["title","score","comments","story_url","name"]]
+    max_comments = max_comments[[
+        "title", "score", "comments", "story_url", "name"]]
     max_comments = max_comments.rename(columns={
         "title": "Title",
         "score": "Score",
@@ -83,7 +85,7 @@ def top_comments_table(dataframe: pd.DataFrame, topics: list) -> pd.DataFrame:
 
 def trending_stories_table(engine: Engine, timeframe: str, topics: list) -> pd.DataFrame:
     """Finds the stories with the largest score increase in a given timeframe."""
-    if timeframe not in ("hour","day"):
+    if timeframe not in ("hour", "day"):
         return None
     if timeframe == "hour":
         interval = "2 hours"
@@ -107,7 +109,7 @@ def trending_stories_table(engine: Engine, timeframe: str, topics: list) -> pd.D
             """
     trending_df = pd.read_sql(trend_query, engine, index_col="story_id")
     trending_df = trending_df[trending_df["topic"].isin(topics)]
-    return trending_df[["title","score_change","story_url","topic"]].head(10)
+    return trending_df[["title", "score_change", "story_url", "topic"]].head(10)
 
 
 def topic_table(dataframe: pd.DataFrame) -> pd.DataFrame:
@@ -119,16 +121,16 @@ def topic_table(dataframe: pd.DataFrame) -> pd.DataFrame:
 def topic_piechart(dataframe: pd.DataFrame):
     """Creates a piechart showing score distribution for topics."""
     rankings = dataframe.groupby("name").sum().reset_index()
-    rankings = rankings[["name","score"]].sort_values("score", ascending=False)
-    piechart = alt.Chart(rankings).mark_arc(innerRadius=75,outerRadius=150).encode(theta=alt.Theta("score").stack(True),
-                                                               color=alt.Color("name:N", sort="descending").scale(scheme="tableau20").legend(title="Topics",
-                                                                                                                          orient="right",
-                                                                                                                          titleFontSize=0,
-                                                                                                                          labelFontSize=15,
-                                                                                                                          labelLimit=0,
-                                                                                                                          labelColor="black"))
+    rankings = rankings[["name", "score"]].sort_values(
+        "score", ascending=False)
+    piechart = alt.Chart(rankings).mark_arc(innerRadius=75, outerRadius=150).encode(theta=alt.Theta("score").stack(True),
+                                                                                    color=alt.Color("name:N", sort="descending").scale(scheme="tableau20").legend(title="Topics",
+                                                                                                                                                                  orient="right",
+                                                                                                                                                                  titleFontSize=0,
+                                                                                                                                                                  labelFontSize=15,
+                                                                                                                                                                  labelLimit=0,
+                                                                                                                                                                  labelColor="black"))
     piechart = piechart.properties(width=500, height=320)
-
     return piechart
 
 
@@ -138,12 +140,12 @@ if __name__ == "__main__":
 
     # df = generate_dataframe(engine, "hour")
     topics = ['News & Current Affairs' 'Programming & Software Development',
-    'Literature & Book Reviews', 'Science & Research Publications',
-    'Miscellaneous & Interesting Facts',
-    'Artificial Intelligence & Machine Learning', 'Game Development',
-    'Algorithms & Data Structures',
-    'Operating Systems & Low-level Programming',
-    'Computer Graphics & Image Processing']
+              'Literature & Book Reviews', 'Science & Research Publications',
+              'Miscellaneous & Interesting Facts',
+              'Artificial Intelligence & Machine Learning', 'Game Development',
+              'Algorithms & Data Structures',
+              'Operating Systems & Low-level Programming',
+              'Computer Graphics & Image Processing']
 
     print(trending_stories_table(engine, "hour", topics))
 
