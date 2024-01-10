@@ -1,9 +1,11 @@
 """Streamlit dashboard for analysis of stories"""
 from os import environ
 import re
+import time
 import pandas as pd
 from dotenv import load_dotenv
 import streamlit as st
+from streamlit_marquee import streamlit_marquee
 from sqlalchemy import create_engine, URL, exc
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
@@ -54,6 +56,39 @@ def font_color_topics(val) -> str:
         'Miscellaneous & Interesting Facts': "brown"
     }
     return f'color: {color_mapping.get(val, "black")}'
+
+
+def show_flashpoints(connection):
+    """Shows snap info of stories, median, average and new entries"""
+    avg, med = show_recent_average_and_median(connection)
+    st.subheader("In the past hour...")
+    st.subheader(f"Average votes: {avg}")
+    st.subheader(f"Median votes: {med}")
+    marquee_list = [avg, med]
+
+    # streamlit_marquee(**{
+    #     # the marquee container background color
+    #     'background': "#005864",
+    #     # the marquee text size
+    #     'font-size': '20px',
+    #     # the marquee text color
+    #     "color": "#ffffff",
+    #     # the marquee text content
+    #     'content': marquee_list,
+    #     # the marquee container width
+    #     'width': '2000px',
+    #     # the marquee container line height
+    #     'lineHeight': "20px",
+    #     # the marquee duration
+    #     'animationDuration': '60s',
+    #     })
+    
+
+    new_entries_df = pd.read_sql(NEW_ENTRIES, connection)
+
+    new_movers = new_entries_df["unique_story_count"].iloc[0]
+    st.subheader("In the last 24 hours...")
+    st.subheader(f"{new_movers} new stories have been entered the top 200")
 
 
 def show_long_lived_stories(connection):
@@ -122,7 +157,6 @@ def show_top_authors(connection):
     st.pyplot(fig)
 
 
-
 def extract_publisher(url):
     """Extracts the publisher from a given story url
     """
@@ -187,27 +221,17 @@ def show_five_biggest_movers(connection):
     # Set labels and title
     ax.set_xlabel('Timestamp')
     ax.set_ylabel('Votes')
-    ax.set_title('5 biggest movers over last 24 hours')
+    ax.set_title('')
     ax.legend()
 
     ax.set_xticklabels(df_records['record_time'], rotation=45, ha='right')
     ax.xaxis.set_major_formatter(mdates.DateFormatter('%d/%m %H:%M'))
 
+    title_alignment="""<div style="text-align: center; font-size: 50px" >
+                    5 biggest movers over last 24 hours
+                    </div>"""
+    st.markdown(title_alignment, unsafe_allow_html=True)
     st.pyplot(fig)
-
-
-def show_flashpoints(connection):
-    """Shows snap info of stories, median, average and new entries"""
-    avg, med = show_recent_average_and_median(connection)
-    st.subheader("In the past hour...")
-    st.subheader(f"Average votes: {avg}")
-    st.subheader(f"Median votes: {med}")
-
-    new_entries_df = pd.read_sql(NEW_ENTRIES, connection)
-
-    new_movers = new_entries_df["unique_story_count"].iloc[0]
-    st.subheader("In the last 24 hours...")
-    st.subheader(f"{new_movers} new stories have been entered the top 200")
 
 
 if __name__ == "__main__":
@@ -231,3 +255,18 @@ if __name__ == "__main__":
 
     show_long_lived_stories(conn)
     show_five_biggest_movers(conn)
+    text_values = ["Value 1", "Value 2", "Value 3", "Value 4", "Value 5"]
+
+    # Streamlit app
+    st.title("Text Animation Example")
+
+    # Create an empty placeholder to dynamically update text
+    text_placeholder = st.empty()
+
+    # Loop through the list and update the text dynamically
+    for value in text_values:
+        # Update the text placeholder
+        text_placeholder.text(value)
+        
+        # Pause for a short duration to create the appearance of animation
+        time.sleep(1)
