@@ -9,7 +9,7 @@ import pandas as pd
 import boto3
 import psycopg2
 import openai
-
+from botocore.config import Config
 
 
 DATE_TODAY = date.today().strftime("%A %B %d %Y")
@@ -179,7 +179,8 @@ def send_email(html_string: str):
     client = boto3.client('ses',
                           region_name='eu-west-2',
                           aws_access_key_id=environ["ACCESS_KEY_ID"],
-                          aws_secret_access_key=environ["SECRET_ACCESS_KEY"])
+                          aws_secret_access_key=environ["SECRET_ACCESS_KEY"],
+                          config=Config(connect_timeout=5, read_timeout=60, retries={'max_attempts': 5}))
 
     response = client.send_email(
         Destination={
@@ -209,14 +210,15 @@ def send_email(html_string: str):
     return response
 
 
-def handler(): #event=None, context=None
-    """Handler function."""
-    load_dotenv()
-    summaries_data = generate_summaries_dict()
-    html_str = generate_html_string(summaries_data)
-    return send_email(html_str)
+# def handler(event=None, context=None):
+#     """Handler function."""
+#     load_dotenv()
+#     summaries_dict = generate_summaries_dict()
+#     df = load_stories_data()
+#     html_str = generate_html_string(summaries_dict, df)
+#     return send_email(html_str)
 
-# load_dotenv()
+load_dotenv()
 
 # summary = """[
 #     {
@@ -243,8 +245,8 @@ def handler(): #event=None, context=None
 # df = load_stories_data()
 # # url = get_url_list(df)
 # # summary = summarise_stories(url)
-# summaries_dict = generate_summaries_dict()
+summaries_dict = generate_summaries_dict()
 # # print(summary)
-# # df = load_stories_data()
-# html_str = generate_html_string(summaries_dict, df)
-# send_email(html_str)
+df = load_stories_data()
+html_str = generate_html_string(summaries_dict, df)
+send_email(html_str)
