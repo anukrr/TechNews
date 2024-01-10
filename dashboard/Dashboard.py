@@ -51,8 +51,9 @@ with col1:
     top_scores = top_stories_table(all_data, selected_topics)
 
     st.header("⚡ Top Stories")
-    st.subheader(f"in the past {timeframe}")
+    st.subheader(f"In the past {timeframe}")
     st.dataframe(top_scores.style,
+                 use_container_width=True,
                  hide_index=True,
                  height=300,
                  column_config={"Link": st.column_config.LinkColumn()})
@@ -60,8 +61,11 @@ with col1:
     st.header("📈 Trending Stories")
     if timeframe in ("hour","day"):
         trending = trending_stories_table(engine, timeframe, selected_topics)
-        st.subheader(f"in the past {timeframe}")
-        st.dataframe(trending, hide_index=True, height=300)
+        st.subheader(f"In the past {timeframe}")
+        st.dataframe(trending,
+                     use_container_width=True,
+                     hide_index=True,
+                     height=300)
     else:
         st.subheader(f"can only be displayed by hour or day")
 
@@ -70,7 +74,7 @@ with col3:
 
     topic_piechart = topic_piechart(all_data)
     st.header("🔥 Hot Topics")
-    st.subheader(f"in the past {timeframe}")
+    st.subheader(f"In the past {timeframe}")
     st.altair_chart(topic_piechart, use_container_width=True)
     # ranked_topics = topic_table(all_data)
     # st.subheader("🔥 Whats Hot")
@@ -82,6 +86,7 @@ with col3:
     st.header("💬 Causing a Discussion")
     st.subheader(f"in the past {timeframe}")
     st.dataframe(top_comments,
+                 use_container_width=True,
                  hide_index=True,
                  height=300,
                  column_config={"Link": st.column_config.LinkColumn()})
