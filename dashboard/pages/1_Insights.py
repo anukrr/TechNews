@@ -4,7 +4,7 @@ import re
 import pandas as pd
 from dotenv import load_dotenv
 import streamlit as st
-from sqlalchemy import create_engine, URL
+from sqlalchemy import create_engine, URL, exc
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 from sql_queries import (
@@ -30,8 +30,11 @@ def get_db_connection():
         database=environ['DB_NAME'],
         )
         return create_engine(connection)
-    except OSError:
-        return {'error': 'Unable to connect to the database.'}
+    except OSError as e:
+        return {'error': f'{e},Unable to connect to the database.'}
+
+    except exc.SQLAlchemyError as e: 
+        return {'error': f'{e}, unable to connect to the database'}
 
 
 def font_color_topics(val) -> str:
@@ -167,8 +170,7 @@ def show_top_publishers(connection):
     """
     story_data = pd.read_sql('SELECT * FROM stories;', connection)
 
-    story_publishers = story_data["story_url"].dropna(
-    ).apply(extract_publisher)
+    story_publishers = story_data["story_url"].dropna().apply(extract_publisher)
     count_publishers_df = story_publishers.value_counts().head(5).reset_index(name="count")
     count_publishers_df = count_publishers_df.rename(
         columns={'story_url': 'Publisher', 'count': 'Stories published'}
@@ -217,7 +219,7 @@ if __name__ == "__main__":
     show_flashpoints(conn)
 
     with st.container():
-        title_alignment="""<div style="text-align: center; font-size: 50px" > your-text-here </div>"""
+        title_alignment="""<div style="text-align: center; font-size: 50px" > Distributor Information </div>"""
         st.markdown(title_alignment, unsafe_allow_html=True)
         cols = st.columns(2)
         with cols[0]:
