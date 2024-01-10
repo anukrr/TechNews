@@ -49,6 +49,9 @@ def get_story_sentiment(story_id: int):
 
 
 def categorise_sentiment(sentiment_value: int):
+    """Categorises each sentiment-value in the range [-1,1] into one of 5 categories.
+    Assigns a colour and label to each category."""
+
     if -1 <= sentiment_value < -0.6:
         category_color = "#FF0000"
         category_label = "Very Negative 😠"
@@ -69,7 +72,7 @@ def categorise_sentiment(sentiment_value: int):
 
 
 def generate_sentiment_gauge(sentiment_value: int):
-    """"""
+    """Make a figure for the sentiment guage."""
     category = categorise_sentiment(sentiment_value)
 
     fig = go.Figure(go.Indicator(
@@ -84,8 +87,7 @@ def generate_sentiment_gauge(sentiment_value: int):
 
 
 def make_gauge_chart(input_story_id: int):
-    '''Bar chart showing transaction count per truck.'''
-
+    """Utilises helper functions to produces the final gauge chart."""
     value = get_story_sentiment(input_story_id)
     fig = generate_sentiment_gauge(value)
     return st.plotly_chart(fig)
@@ -93,7 +95,7 @@ def make_gauge_chart(input_story_id: int):
 
 if __name__ == "__main__":
 
-    input_story_id = 38865518
+    STORY_ID = 38865518
 
     st.title('Test gauge helper file \n')
-    make_gauge_chart(input_story_id)
+    make_gauge_chart(STORY_ID)
