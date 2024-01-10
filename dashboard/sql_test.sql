@@ -11,19 +11,6 @@ WHERE record_time >= NOW() - INTERVAL '1 hour';
 
 
 -- 10 stories which have been in top stories the longest 
-SELECT
-    s.title,
-    t.name,
-    MIN(record_time) AS earliest_recording,
-    MAX(record_time) AS most_recent_recording,
-    EXTRACT(EPOCH FROM MAX(record_time) - MIN(record_time))/3600 AS time_difference_hours 
-FROM records r
-JOIN stories s ON r.story_id = s.story_id
-JOIN topics t ON s.topic_id = t.topic_id
-GROUP BY r.story_id, s.title, t.name
-ORDER BY time_difference_hours DESC
-LIMIT 10;
-
 
 SELECT s.title,  t.name, COUNT(*) AS longest_stories
 FROM records r
@@ -32,40 +19,6 @@ JOIN topics t ON s.topic_id = t.topic_id
 GROUP BY r.story_id, s.title, t.name
 ORDER BY longest_stories DESC
 LIMIT 10;
-
-
--- Sum all votes of all stories recorded per hour group (record time)
-
-WITH HourlyVotes AS (
-    SELECT
-        EXTRACT(HOUR FROM record_time) AS hour_of_day,
-        score,
-        LAG(score) OVER (ORDER BY EXTRACT(HOUR FROM record_time)) AS prev_hour_score
-    FROM
-        records
-)
-SELECT
-    hour_of_day,
-    SUM(COALESCE(score - prev_hour_score, score)) AS score_diff
-FROM
-    HourlyVotes
-GROUP BY
-    hour_of_day
-ORDER BY
-    score_diff DESC;
-
-
-
-
-SELECT
-    EXTRACT(HOUR FROM record_time) AS hour_of_day,
-    SUM(score) AS total_votes
-FROM
-    records
-GROUP BY
-    hour_of_day
-ORDER BY
-    total_votes DESC;
 
 
 -- Average and median scores of all stories 
@@ -110,6 +63,10 @@ GROUP BY author
 ORDER BY stories_created DESC
 LIMIT 5;
 
+SELECT author, story_url FROM stories
+WHERE author LIKE 'PaulHoule'
+ORDER BY story_url;
+
 
 WITH latest_records AS (
 SELECT DISTINCT ON (records.story_id)
@@ -121,6 +78,43 @@ JOIN stories s ON latest_records.story_id = s.story_id
 GROUP BY s.author
 ORDER BY all_stories_total_votes DESC
 LIMIT 5;
+
+
+
+
+-- Sum all votes of all stories recorded per hour group (record time)
+
+WITH HourlyVotes AS (
+    SELECT
+        EXTRACT(HOUR FROM record_time) AS hour_of_day,
+        score,
+        LAG(score) OVER (ORDER BY EXTRACT(HOUR FROM record_time)) AS prev_hour_score
+    FROM
+        records
+)
+SELECT
+    hour_of_day,
+    SUM(COALESCE(score - prev_hour_score, score)) AS score_diff
+FROM
+    HourlyVotes
+GROUP BY
+    hour_of_day
+ORDER BY
+    score_diff DESC;
+
+
+
+
+SELECT
+    EXTRACT(HOUR FROM record_time) AS hour_of_day,
+    SUM(score) AS total_votes
+FROM
+    records
+GROUP BY
+    hour_of_day
+ORDER BY
+    total_votes DESC;
+
 
 
 -- TOP 5 Movers in last 24 hours
@@ -137,10 +131,10 @@ LIMIT 5;
 
 
 
-WITH test AS (
-SELECT *
-FROM records
-WHERE story_id IN (
+SELECT s.title, r.record_time, r.score
+FROM records r
+JOIN stories s ON r.story_id = s.story_id
+WHERE r.story_id IN (
     SELECT r.story_id
     FROM records r
     JOIN stories s ON r.story_id = s.story_id
@@ -148,8 +142,8 @@ WHERE story_id IN (
     GROUP BY r.story_id, s.title
     ORDER BY MAX(r.score) - MIN(r.score) DESC
     LIMIT 5
-)) 
-SELECT COUNT(*) FROM TEST;
+)
+ORDER BY r.story_id, r.record_time;
 
 
 SELECT *
@@ -157,9 +151,8 @@ FROM records
 WHERE story_id IN (
     SELECT r.story_id
     FROM records r
-    JOIN stories s ON r.story_id = s.story_id
     WHERE r.record_time >= NOW() - INTERVAL '24 hours'
-    GROUP BY r.story_id, s.title
+    GROUP BY r.story_id
     ORDER BY MAX(r.score) - MIN(r.score) DESC
     LIMIT 5
 )
