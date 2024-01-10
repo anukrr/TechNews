@@ -9,6 +9,7 @@ psycopg2-binary
 sqlalchemy
 matplotlib
 seaborn
+streamlit_marquee
 
 # comment analysis
 textblob
