@@ -1,9 +1,11 @@
 """This file contains the functions necessary to generate the Streamlit dashboard."""
 
+import time
 from os import environ
 from datetime import datetime, timedelta
 from dotenv import load_dotenv
 import pandas as pd
+import streamlit as st
 import altair as alt
 from sqlalchemy import create_engine, URL
 from sqlalchemy.engine.base import Engine
@@ -15,10 +17,6 @@ engine_url_object = URL.create("postgresql+psycopg2",
                                password=environ["DB_PASSWORD"],
                                host=environ["DB_HOST"],
                                database=environ["DB_NAME"])
-
-
-def make_clickable(url, name):
-    return '<a href="{}" rel="noopener noreferrer" target="_blank">{}</a>'.format(url,name)
 
 
 def generate_dataframe(engine: Engine, timeframe: str) -> pd.DataFrame:
@@ -54,14 +52,15 @@ def top_stories_table(dataframe: pd.DataFrame, topics: list) -> pd.DataFrame:
     idx = dataframe.groupby("story_id")["score"].idxmax()
     max_scores = dataframe.loc[idx]
     max_scores = max_scores[["title","score","comments","story_url","name"]]
+    max_scores["story_url"] = max_scores["story_url"].fillna(value="https://news.ycombinator.com/")
     max_scores = max_scores.rename(columns={
         "title": "Title",
-        "score": "Score",
-        "comments": "Comments",
-        "story_url": "Link",
+        "score": "⬆️",
+        "comments": "💬",
+        "story_url": "🔗",
         "name": "Topic"
     })
-    max_scores = max_scores.sort_values("Score", ascending=False).head(20)
+    max_scores = max_scores.sort_values("⬆️", ascending=False).head(20)
     return max_scores
 
 
@@ -71,14 +70,15 @@ def top_comments_table(dataframe: pd.DataFrame, topics: list) -> pd.DataFrame:
     idx = dataframe.groupby("story_id")["comments"].idxmax()
     max_comments = dataframe.loc[idx]
     max_comments = max_comments[["title","score","comments","story_url","name"]]
+    max_comments["story_url"] = max_comments["story_url"].fillna(value="https://news.ycombinator.com/")
     max_comments = max_comments.rename(columns={
         "title": "Title",
-        "score": "Score",
-        "comments": "Comments",
-        "story_url": "Link",
+        "score": "⬆️",
+        "comments": "💬",
+        "story_url": "🔗",
         "name": "Topic"
     })
-    return max_comments.sort_values("Comments", ascending=False).head(20)
+    return max_comments.sort_values("💬", ascending=False).head(20)
 
 
 def trending_stories_table(engine: Engine, timeframe: str, topics: list) -> pd.DataFrame:
@@ -107,7 +107,15 @@ def trending_stories_table(engine: Engine, timeframe: str, topics: list) -> pd.D
             """
     trending_df = pd.read_sql(trend_query, engine, index_col="story_id")
     trending_df = trending_df[trending_df["topic"].isin(topics)]
-    return trending_df[["title","score_change","story_url","topic"]].head(10)
+    trending_df["story_url"] = trending_df["story_url"].fillna(value="https://news.ycombinator.com/")
+    trending_df = trending_df.rename(columns={
+        "title": "Title",
+        "score_change": "➕",
+        "comments": "💬",
+        "story_url": "🔗",
+        "topic": "Topic"
+    })
+    return trending_df[["Title","➕","🔗","Topic"]].head(10)
 
 
 def topic_table(dataframe: pd.DataFrame) -> pd.DataFrame:
@@ -120,16 +128,35 @@ def topic_piechart(dataframe: pd.DataFrame):
     """Creates a piechart showing score distribution for topics."""
     rankings = dataframe.groupby("name").sum().reset_index()
     rankings = rankings[["name","score"]].sort_values("score", ascending=False)
-    piechart = alt.Chart(rankings).mark_arc(innerRadius=75,outerRadius=150).encode(theta=alt.Theta("score").stack(True),
+    piechart = alt.Chart(rankings).mark_arc(innerRadius=40,outerRadius=110).encode(theta=alt.Theta("score").stack(True),
                                                                color=alt.Color("name:N", sort="descending").scale(scheme="tableau20").legend(title="Topics",
                                                                                                                           orient="right",
                                                                                                                           titleFontSize=0,
-                                                                                                                          labelFontSize=15,
+                                                                                                                          labelFontSize=10,
                                                                                                                           labelLimit=0,
                                                                                                                           labelColor="black"))
-    piechart = piechart.properties(width=500, height=320)
+    piechart = piechart.properties(width=250, height=350)
 
     return piechart
+
+
+def cycle_text(text_list, interval=4):
+    index = 0
+    box = st.empty()
+    while True:
+        box.write(f'{text_list[index]}')  # st.text(text_list[index])
+        time.sleep(interval)
+        index = (index + 1) % len(text_list)
+
+
+def format_trending_stories(dataframe: pd.DataFrame) -> list[str]:
+    """Turns trending story titles into a formatted list for the text cycler."""
+    titles = dataframe["Title"].to_list()
+    formatted_string = ""
+    for title in titles:
+        formatted_string += f"\n{title}------------------------------"
+        formatted_string += ""
+    return formatted_string
 
 
 if __name__ == "__main__":
