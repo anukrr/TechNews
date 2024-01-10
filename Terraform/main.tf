@@ -70,7 +70,7 @@ resource "aws_iam_role" "iam_for_lambda_text" {
 #Text Lambda:
 resource "aws_lambda_function" "c9-tech-news-text-lambda-tf" {
     function_name = "c9-tech-news-text-lambda-tf"
-    role = aws_iam_role.iam_for_lambda_anu_tf.arn
+    role = aws_iam_role.iam_for_lambda_text.arn
     image_uri = "DOCKER IMAGE REPO"
     package_type = "Image"
     environment {
@@ -103,7 +103,7 @@ resource "aws_iam_role" "iam_for_lambda_email" {
 #Lambda for email
 resource "aws_lambda_function" "c9-anu-lambda-tf" {
     function_name = "c9-tech-news-email-lambda-tf"
-    role = aws_iam_role.iam_for_lambda_anu_tf.arn
+    role = aws_iam_role.iam_for_lambda_email.arn
     image_uri = "DOCKER_IMAGE_REPO"
     package_type = "Image"
     environment {
@@ -118,12 +118,28 @@ resource "aws_lambda_function" "c9-anu-lambda-tf" {
     }
 }
 # Scheduler for Lambda 
+resource "aws_cloudwatch_event_rule" "text-trigger" {
+  name                = "c9-tech-news-text-trigger-tf"
+  schedule_expression = "cron(0 * * * ? *)"
+}
 
+resource "aws_cloudwatch_event_target" "text-target" {
+
+    rule = aws_cloudwatch_event_rule.text-trigger.name
+    arn = aws_lambda_function.c9-tech-news-text-lambda-tf.arn
+}
+
+resource "aws_lambda_permission" "execute-lambda-permission" {
+    action = "lambda:InvokeFunction"
+    function_name = aws_lambda_function.c9-tech-news-text-lambda-tf.function_name
+    principal = "events.amazonaws.com"
+    source_arn = aws_cloudwatch_event_rule.text-trigger.arn
+}
 #Scheduler for text: has a trigger
 
 #Task Definition
 resource "aws_ecs_task_definition" "task-def" {
-    family = "c9-anu-dashboard-td-tf"
+    family = "c9-tech-news-pipeline-td-tf"
     requires_compatibilities = ["FARGATE"]
     network_mode             = "awsvpc"
     container_definitions = file("./task-def.json")
