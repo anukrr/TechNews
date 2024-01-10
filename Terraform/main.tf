@@ -22,6 +22,34 @@ data "aws_sesv2_email_identity_mail_from_attributes" "anu-email-from" {
 
 #ECRs
 
+#ECR dashboard 
+resource "aws_ecr_repository" "c9-tech-news-dashboard-repo-tf" {
+  name = "c9-tech-news-dashboard-repo-tf"
+  image_scanning_configuration {
+    scan_on_push = false
+  }
+}
+#ECR email lambda
+resource "aws_ecr_repository" "c9-tech-news-email-repo-tf" {
+  name = "c9-tech-news-email-repo-tf"
+  image_scanning_configuration {
+    scan_on_push = false
+  }
+}
+#ECR pipeline 
+resource "aws_ecr_repository" "c9-tech-news-pipeline-repo-tf" {
+  name = "c9-tech-news-pipeline-repo-tf"
+  image_scanning_configuration {
+    scan_on_push = false
+  }
+}
+#ECR SMS lambda
+resource "aws_ecr_repository" "c9-tech-news-text-repo-tf" {
+  name = "c9-tech-news-text-repo-tf"
+  image_scanning_configuration {
+    scan_on_push = false
+  }
+}
 #iam role: Lambda for text
 resource "aws_iam_role" "iam_for_lambda_text" {
   name               = "iam_for_lambda_text"
