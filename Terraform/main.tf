@@ -89,7 +89,6 @@ resource "aws_lambda_function" "c9-anu-lambda-tf" {
       USERNAME=var.USERNAME
     }
     }
-
 }
 # Scheduler for Lambda 
 
