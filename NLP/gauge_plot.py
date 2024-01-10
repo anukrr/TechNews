@@ -33,6 +33,7 @@ def get_comment_text(comment: int) -> str:
 
 
 def get_comment_list(story: int):
+    story = int(story)
     comments = get_parent_comment_ids(story)
     comment_list = [get_comment_text(comment) for comment in comments]
     return comment_list
