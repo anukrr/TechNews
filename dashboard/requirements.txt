@@ -9,3 +9,7 @@ psycopg2-binary
 sqlalchemy
 matplotlib
 seaborn
+
+# comment analysis
+textblob
+plotly
