@@ -60,7 +60,7 @@ marquee = streamlit_marquee(**{
         # the marquee container line height
         'lineHeight': "20px",
         # the marquee duration
-        'animationDuration': '45s',
+        'animationDuration': '60s',
         })
 
 
