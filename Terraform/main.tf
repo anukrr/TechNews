@@ -40,22 +40,21 @@ resource "aws_iam_role" "iam_for_lambda_text" {
 }
 
 #Text Lambda:
-resource "aws_lambda_function" "c9-anu-lambda-tf" {
+resource "aws_lambda_function" "c9-tech-news-text-lambda-tf" {
     function_name = "c9-tech-news-text-lambda-tf"
     role = aws_iam_role.iam_for_lambda_anu_tf.arn
-    image_uri = "129033205317.dkr.ecr.eu-west-2.amazonaws.com/c9-anu-lambda-repo:latest"
+    image_uri = "DOCKER IMAGE REPO"
     package_type = "Image"
     environment {
-      variables = {
-      AWS_BUCKET=var.AWS_BUCKET
-      DATABASE=var.DATABASE
-      HOST=var.HOST
-      PASSWORD=var.PASSWORD
-      PORT=var.PORT
-      USERNAME=var.USERNAME
+        variables = {
+        AWS_BUCKET=var.AWS_BUCKET
+        DATABASE=var.DATABASE
+        HOST=var.HOST
+        PASSWORD=var.PASSWORD
+        PORT=var.PORT
+        USERNAME=var.USERNAME
+        }
     }
-    }
-
 }
 #Iam: Lambda for email
 resource "aws_iam_role" "iam_for_lambda_email" {
@@ -77,24 +76,22 @@ resource "aws_iam_role" "iam_for_lambda_email" {
 resource "aws_lambda_function" "c9-anu-lambda-tf" {
     function_name = "c9-tech-news-email-lambda-tf"
     role = aws_iam_role.iam_for_lambda_anu_tf.arn
-    image_uri = "129033205317.dkr.ecr.eu-west-2.amazonaws.com/c9-anu-lambda-repo:latest"
+    image_uri = "DOCKER_IMAGE_REPO"
     package_type = "Image"
     environment {
-      variables = {
-      AWS_BUCKET=var.AWS_BUCKET
-      DATABASE=var.DATABASE
-      HOST=var.HOST
-      PASSWORD=var.PASSWORD
-      PORT=var.PORT
-      USERNAME=var.USERNAME
-    }
+        variables = {
+        AWS_BUCKET=var.AWS_BUCKET
+        DATABASE=var.DATABASE
+        HOST=var.HOST
+        PASSWORD=var.PASSWORD
+        PORT=var.PORT
+        USERNAME=var.USERNAME
+        }
     }
 }
 # Scheduler for Lambda 
 
 #Scheduler for text: has a trigger
-
-# ECS Task for pipeline
 
 #Task Definition
 resource "aws_ecs_task_definition" "task-def" {
