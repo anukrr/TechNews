@@ -69,7 +69,7 @@ def show_long_lived_stories(connection):
 
     # Display the styled DataFrame in Streamlit
 
-    return st.dataframe(styled_df)
+    return st.dataframe(styled_df, hide_index = True)
 
 
 def show_comments_line_chart(connection):
@@ -99,7 +99,6 @@ def show_top_authors(connection):
 
     df1 = pd.read_sql(MOST_AUTHOR_CONTRIBUTIONS, connection)
     df2 = pd.read_sql(MOST_POPULAR_AUTHORS, connection)
-    st.title("Top Authors Overview")
 
     fig, ax = plt.subplots(2, 1, figsize=(10, 12))
 
@@ -175,7 +174,6 @@ def show_top_publishers(connection):
         columns={'story_url': 'Publisher', 'count': 'Stories published'}
     )
 
-    st.title('Top Publishers by Counts')
     fig, ax = plt.subplots(figsize=(10, 6))
 
     ax.bar(
@@ -217,7 +215,16 @@ if __name__ == "__main__":
     reading_data = pd.read_sql('SELECT * FROM records;', conn)
 
     show_flashpoints(conn)
+
+    with st.container():
+        title_alignment="""<div style="text-align: center; font-size: 50px" > your-text-here </div>"""
+        st.markdown(title_alignment, unsafe_allow_html=True)
+        cols = st.columns(2)
+        with cols[0]:
+            show_top_authors(conn)
+
+        with cols[1]:
+            show_top_publishers(conn)
+
     show_long_lived_stories(conn)
-    show_top_authors(conn)
-    show_top_publishers(conn)
     show_five_biggest_movers(conn)
