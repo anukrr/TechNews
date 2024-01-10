@@ -58,16 +58,23 @@ def generate_comments_df(top_comments: list[dict]) -> pd.DataFrame:
     return df
 
 
-if __name__ == "__main__":
-
+def make_expander(story_id: int) -> None:
+    """Takes in a story_id and writes streamlit expander boxes."""
     story_id = 38865518
     top_5_comments = get_top_5_most_replied_parent_comments(story_id)
     df = generate_comments_df(top_5_comments)
 
-    st.write("Check out the top talking points for this story:")
     for index, row in df.iterrows():
         with st.expander(f"{row['Comment'][0:60]} - - - [Replies: {row['Replies']}]"):
             st.write(row['Comment'])
             st.write(f"({row['User']})")
 
-        # align replies to right side
+
+if __name__ == "__main__":
+
+    input_story_id = 38865518
+
+    st.write("Check out the top talking points for this story:")
+    make_expander(input_story_id)
+
+    # align replies to right side
