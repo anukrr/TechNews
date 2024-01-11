@@ -139,6 +139,8 @@ def generate_html_string(dict_of_summary: list[dict], df) -> str:
             <td height="8" style="background-color: #F0F8FF;">
             </td>
             </tr>
+    <img src="full-stack.jpg" alt="full-stack" style="width:200px;height:100px;">
+    <link rel="icon" href="full-stack.png">
     <h1> Daily Brief</h1>
     <h1 style="color:#5F9EA0">Top Stories</h1>"""
 
@@ -219,34 +221,7 @@ def send_email(html_string: str):
 #     return send_email(html_str)
 
 load_dotenv()
-
-# summary = """[
-#     {
-#         "article_title": "Polaris Office's Infographics, Documents, and Spreadsheets",
-#         "summary": "Polaris Office introduces a tool to create infographics, documents, and spreadsheets. It provides templates and features for a variety of business needs. Polaris Office aims to enhance productivity and efficiency for users."
-#     },
-#     {
-#         "article_title": "United Finds Loose Bolts on Plug Doors During 737 Max 9 Inspections",
-#         "summary": "During inspections of 737 Max 9 aircraft, United Airlines discovered loose bolts on plug doors and undertook rectification measures. The issue did not lead to any in-service incidents, but it highlights the importance of thorough safety inspections."
-#     },
-#     {
-#         "article_title": "Dive: A Tool for Exploring Docker Images",
-#         "summary": "Dive is a user-friendly tool for exploring Docker images. It provides visualizations and insights into image layers, helping users understand their composition and optimize image size. Dive is an open-source project available on GitHub."
-#     },
-#     {
-#         "article_title": "Jose Valim's Tweet about Elixir's 10th Birthday",
-#         "summary": "Jose Valim shares a tweet celebrating Elixir's 10th birthday, highlighting its impressive growth and community support over the years. The tweet reflects on Elixir's impact and success as a programming language."
-#     },
-#     {
-#         "article_title": "What PWA Can Do: Exploring Progressive Web Applications' Capabilities",
-#         "summary": "This resource provides insights into the capabilities of Progressive Web Applications (PWAs), including offline functionality, push notifications, and access to device features. It showcases the potential for PWAs to deliver app-like experiences on the web."
-#     }
-# ]"""
-# df = load_stories_data()
-# # url = get_url_list(df)
-# # summary = summarise_stories(url)
 summaries_dict = generate_summaries_dict()
-# # print(summary)
 df = load_stories_data()
 html_str = generate_html_string(summaries_dict, df)
 send_email(html_str)
