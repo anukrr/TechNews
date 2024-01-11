@@ -31,14 +31,8 @@ def get_comment_list(story_id: int):
 def get_story_sentiment(story_id: int):
     """Performs sentiment analysis for a given story."""
     comment_list = get_comment_list(story_id)
-    sentiment_list = []
-
-    for comment in comment_list:
-        blob = TextBlob(str(comment))
-        for sentence in blob.sentences:
-            sentiment = sentence.sentiment.polarity
-        sentiment_list.append(sentiment)
-
+    sentiment_list = [
+        TextBlob(str(comment)).sentiment.polarity for comment in comment_list]
     return sum(sentiment_list)/len(sentiment_list)
 
 
