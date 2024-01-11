@@ -29,17 +29,27 @@ ORDER BY all_stories_total_votes DESC
 LIMIT 5;
 """
 
+NEW_ENTRIES = """SELECT
+    COUNT(DISTINCT story_id) AS unique_story_count
+FROM records r1
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM records r2
+    WHERE r1.story_id = r2.story_id
+      AND r2.record_time < NOW() - INTERVAL {}
+);"""
+
 
 LAST_HOUR_AVERAGE_SCORE = """WITH latest_scores AS (
 SELECT * from records
-WHERE record_time >= NOW() - INTERVAL '1 hour')
+WHERE record_time >= NOW() - INTERVAL {})
 SELECT AVG(score) FROM latest_scores
 ;
 """
 
 LAST_HOUR_MEDIAN_SCORE = """WITH latest_scores AS (
 SELECT * from records
-WHERE record_time >= NOW() - INTERVAL '1 hour')
+WHERE record_time >= NOW() - INTERVAL {})
 SELECT PERCENTILE_CONT(0.5) WITHIN GROUP(ORDER BY score) AS median_score FROM latest_scores;
 """
 
@@ -57,12 +67,5 @@ WHERE r.story_id IN (
 )
 ORDER BY r.story_id, r.record_time;"""
 
-NEW_ENTRIES = """SELECT
-    COUNT(DISTINCT story_id) AS unique_story_count
-FROM records r1
-WHERE NOT EXISTS (
-    SELECT 1
-    FROM records r2
-    WHERE r1.story_id = r2.story_id
-      AND r2.record_time < NOW() - INTERVAL '24 hours'
-);"""
+# timeframe = st.selectbox("Filter", ["Last Hour","Last 6 Hours","Last 24 Hours"])
+#         if timeframe ==  
