@@ -269,6 +269,8 @@ if __name__ == "__main__":
     # ax.bar(df['hour_of_day'], (df['total_votes']), color='skyblue', width=0.6)
     # # ax.set_xticks(df['hour_of_day'])
     # # ax.set_xticklabels(df['hour_of_day'], rotation=90, ha='right')
+    #  color=alt.Color('hour_of_day:N', title='Hour of the Day'),
+    #     tooltip=['hour_of_day:N', 'total_votes:Q']
 
     # ax.set_xlabel('Hour of the Day')
     # ax.set_ylabel('Total Votes')
@@ -277,13 +279,20 @@ if __name__ == "__main__":
     # # Display the plot in Streamlit
     # st.pyplot(fig)
 
-    chart = alt.Chart(df).mark_bar().encode(
+    chart = alt.Chart(df).mark_line().encode(
     x=alt.X('hour_of_day:O', title='Hour of the Day'),
-    y=alt.Y('total_votes:Q', title='Total Votes', axis=None),
-    color=alt.Color('hour_of_day:N', title='Hour of the Day'),
-        tooltip=['hour_of_day:N', 'total_votes:Q']
+    y=alt.Y('total_votes:Q', title='Total Votes'),
     ).interactive()
 
-
-    # Display the Altair chart in Streamlit
     st.altair_chart(chart, use_container_width=True)
+
+
+    # chart = alt.Chart(df).mark_bar().encode(
+    # x=alt.X('hour_of_day:O', title='Hour of the Day'),
+    # y=alt.Y('total_votes:Q', title='Total Votes', axis=None),
+   
+    # ).interactive()
+
+
+    # # Display the Altair chart in Streamlit
+    # st.altair_chart(chart, use_container_width=True)
