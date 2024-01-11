@@ -164,7 +164,6 @@ def generate_html_string(dict_of_summary: list[dict], df) -> str:
         <p style="margin-bottom:0;">
             <a href="{story_url}"> Read Article </a> |
             <a"> {creation_date} </a> |
-            <a href=""> source </a>
             </div>
             </div>"""
         articles_list.append(article_box)
@@ -217,4 +216,3 @@ def handler(event=None, context=None):
     df = load_stories_data()
     html_str = generate_html_string(summaries_dict, df)
     return send_email(html_str)
-
