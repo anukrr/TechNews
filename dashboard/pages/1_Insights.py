@@ -4,8 +4,8 @@ import re
 import time
 import pandas as pd
 from dotenv import load_dotenv
+import altair as alt
 import streamlit as st
-from streamlit_marquee import streamlit_marquee
 from sqlalchemy import create_engine, URL, exc
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
@@ -58,37 +58,33 @@ def font_color_topics(val) -> str:
     return f'color: {color_mapping.get(val, "black")}'
 
 
+def show_recent_average_and_median(connection):
+    """Returns a reading table with top 5 longest"""
+    pass
+
+
 def show_flashpoints(connection):
     """Shows snap info of stories, median, average and new entries"""
-    avg, med = show_recent_average_and_median(connection)
-    st.subheader("In the past hour...")
-    st.subheader(f"Average votes: {avg}")
-    st.subheader(f"Median votes: {med}")
-    marquee_list = [avg, med]
 
-    # streamlit_marquee(**{
-    #     # the marquee container background color
-    #     'background': "#005864",
-    #     # the marquee text size
-    #     'font-size': '20px',
-    #     # the marquee text color
-    #     "color": "#ffffff",
-    #     # the marquee text content
-    #     'content': marquee_list,
-    #     # the marquee container width
-    #     'width': '2000px',
-    #     # the marquee container line height
-    #     'lineHeight': "20px",
-    #     # the marquee duration
-    #     'animationDuration': '60s',
-    #     })
+    title_alignment="""<div style="text-align: center; font-size: 50px" > Quick Insights </div>"""
+    st.markdown(title_alignment, unsafe_allow_html=True)
+
+    col1, col2, col3, col4 = st.columns(4)
+
+    with col1:
+        timeframe = st.selectbox("Filter", ["1 Hour","6 Hours","24 Hours"])
+        average_df = pd.read_sql(LAST_HOUR_AVERAGE_SCORE.format(f"'{timeframe}'"), connection)
+        median_df = pd.read_sql(LAST_HOUR_MEDIAN_SCORE.format(f"'{timeframe}'"), connection)
+        new_entries_df = pd.read_sql(NEW_ENTRIES.format(f"'{timeframe}'"), connection)
+        avg = average_df["avg"].astype(int).iloc[0]
+        med = median_df["median_score"].astype(int).iloc[0]
+        new_movers = new_entries_df["unique_story_count"].iloc[0]
+
+    col2.metric("Average Story Votes", avg, "1.2 °F")
+    col3.metric("Median Story Votes", med, "-8%")
+    col4.metric("Brand New Stories", new_movers, "-8%")
     
-
-    new_entries_df = pd.read_sql(NEW_ENTRIES, connection)
-
-    new_movers = new_entries_df["unique_story_count"].iloc[0]
-    st.subheader("In the last 24 hours...")
-    st.subheader(f"{new_movers} new stories have been entered the top 200")
+  
 
 
 def show_long_lived_stories(connection):
@@ -121,13 +117,6 @@ def show_comments_line_chart(connection):
 
     return st.line_chart(grouped_df.set_index('record_time'))
 
-
-def show_recent_average_and_median(connection):
-    """Returns a reading table with top 5 longest"""
-
-    average_df = pd.read_sql(LAST_HOUR_AVERAGE_SCORE, connection)
-    median_df = pd.read_sql(LAST_HOUR_MEDIAN_SCORE, connection)
-    return average_df["avg"].round().iloc[0], median_df["median_score"].iloc[0]
 
 
 def show_top_authors(connection):
@@ -228,7 +217,7 @@ def show_five_biggest_movers(connection):
     ax.xaxis.set_major_formatter(mdates.DateFormatter('%d/%m %H:%M'))
 
     title_alignment="""<div style="text-align: center; font-size: 50px" >
-                    5 biggest movers over last 24 hours
+                    5 biggest movers
                     </div>"""
     st.markdown(title_alignment, unsafe_allow_html=True)
     st.pyplot(fig)
@@ -255,18 +244,46 @@ if __name__ == "__main__":
 
     show_long_lived_stories(conn)
     show_five_biggest_movers(conn)
-    text_values = ["Value 1", "Value 2", "Value 3", "Value 4", "Value 5"]
+
+    query = """
+    SELECT
+        EXTRACT(HOUR FROM record_time) AS hour_of_day,
+        SUM(score) AS total_votes
+    FROM
+        records
+    GROUP BY
+        hour_of_day
+    ORDER BY
+        total_votes DESC;
+"""
+
+    # Execute the query and get the results into a DataFrame
+    df = pd.read_sql_query(query, conn)
+    df = df.sort_values(by='total_votes', ascending=False)
 
     # Streamlit app
-    st.title("Text Animation Example")
+    st.title("Total Votes by Hour of the Day")
 
-    # Create an empty placeholder to dynamically update text
-    text_placeholder = st.empty()
+    # Create a bar chart using Matplotlib
+    # fig, ax = plt.subplots()
+    # ax.bar(df['hour_of_day'], (df['total_votes']), color='skyblue', width=0.6)
+    # # ax.set_xticks(df['hour_of_day'])
+    # # ax.set_xticklabels(df['hour_of_day'], rotation=90, ha='right')
 
-    # Loop through the list and update the text dynamically
-    for value in text_values:
-        # Update the text placeholder
-        text_placeholder.text(value)
-        
-        # Pause for a short duration to create the appearance of animation
-        time.sleep(1)
+    # ax.set_xlabel('Hour of the Day')
+    # ax.set_ylabel('Total Votes')
+    # ax.set_title('Total Votes by Hour of the Day')
+    # ax.set_yticks([])
+    # # Display the plot in Streamlit
+    # st.pyplot(fig)
+
+    chart = alt.Chart(df).mark_bar().encode(
+    x=alt.X('hour_of_day:O', title='Hour of the Day'),
+    y=alt.Y('total_votes:Q', title='Total Votes', axis=None),
+    color=alt.Color('hour_of_day:N', title='Hour of the Day'),
+        tooltip=['hour_of_day:N', 'total_votes:Q']
+    ).interactive()
+
+
+    # Display the Altair chart in Streamlit
+    st.altair_chart(chart, use_container_width=True)
