@@ -37,15 +37,9 @@ def get_story_sentiment(story_id: int):
         blob = TextBlob(str(comment))
         for sentence in blob.sentences:
             sentiment = sentence.sentiment.polarity
-        sentiment_list.append({'comment': comment,
-                               'sentiment': sentiment})
+        sentiment_list.append(sentiment)
 
-    sentiment_mean = []
-    for i in range(0, 20):
-        sentiment_mean.append(sentiment_list[i]['sentiment'])
-    average = sum(sentiment_mean)/len(sentiment_mean)
-
-    return average
+    return sum(sentiment_list)/len(sentiment_list)
 
 
 def categorise_sentiment(sentiment_value: int):
