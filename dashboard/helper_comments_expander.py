@@ -14,7 +14,7 @@ def get_parent_comment_ids(story_id: int) -> list:
     """Returns the id of parent comments for a given story.
     Note: in this case the API endpoint considers parent comments as "kids" of a story."""
     story_info = requests.get(BASE_URL + f"{story_id}.json", timeout=30).json()
-    return story_info.get("kids")  # Warning: see docstring
+    return story_info.get("kids")
 
 
 def format_html(text_string: str):
@@ -45,7 +45,7 @@ def get_top_5_most_replied_parent_comments(story_id: int):
         parent_comments_list.append(
             {'title': comment_title,
              'user': comment_user,
-             'number_of_children': number_of_children})  # add user name as well
+             'number_of_children': number_of_children})
 
     sorted_list = sorted(parent_comments_list, key=lambda comment_dict: comment_dict.get(
         'number_of_children', 0), reverse=True)
@@ -62,7 +62,6 @@ def generate_comments_df(top_comments: list[dict]) -> pd.DataFrame:
 
 def make_expander(story_id: int) -> None:
     """Takes in a story_id and writes streamlit expander boxes."""
-    story_id = 38865518
     top_5_comments = get_top_5_most_replied_parent_comments(story_id)
     df = generate_comments_df(top_5_comments)
 
@@ -70,13 +69,3 @@ def make_expander(story_id: int) -> None:
         with st.expander(f"{row['Comment'][0:60]} - - - [Replies: {row['Replies']}]"):
             st.write(row['Comment'])
             st.write(f"({row['User']})")
-
-
-if __name__ == "__main__":
-
-    STORY_ID = 38865518
-
-    st.write("Check out the top talking points for this story:")
-    make_expander(STORY_ID)
-
-    # align replies to right side

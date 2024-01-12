@@ -31,7 +31,7 @@ def generate_dataframe(engine: Engine, timeframe: str) -> pd.DataFrame:
         time_cutoff = current_time - timedelta(days=1)
     if timeframe == "week":
         time_cutoff = current_time - timedelta(days=7)
-    
+
     query = f"""
     SELECT records.record_id, records.story_id, records.score, records.comments, stories.title, stories.story_url, topics.name
     FROM records
@@ -42,7 +42,7 @@ def generate_dataframe(engine: Engine, timeframe: str) -> pd.DataFrame:
     WHERE record_time > '{time_cutoff}';"""
 
     dataframe = pd.read_sql(query, engine, index_col="record_id")
-    
+
     return dataframe
 
 
@@ -70,7 +70,8 @@ def top_comments_table(dataframe: pd.DataFrame, topics: list, timeframe) -> pd.D
     idx = dataframe.groupby("story_id")["comments"].idxmax()
     max_comments = dataframe.loc[idx]
     max_comments = max_comments[["title","score","comments","story_url","name"]]
-    max_comments["story_url"] = max_comments["story_url"].fillna(value="https://news.ycombinator.com/")
+    max_comments["story_url"] = max_comments["story_url"].fillna(
+        value="https://news.ycombinator.com/")
     max_comments = max_comments.rename(columns={
         "title": "Title",
         "score": "⬆️",
@@ -115,7 +116,8 @@ def trending_stories_table(engine: Engine, timeframe: str, topics: list) -> pd.D
             """
     trending_df = pd.read_sql(trend_query, engine, index_col="story_id")
     trending_df = trending_df[trending_df["topic"].isin(topics)]
-    trending_df["story_url"] = trending_df["story_url"].fillna(value="https://news.ycombinator.com/")
+    trending_df["story_url"] = trending_df["story_url"].fillna(
+        value="https://news.ycombinator.com/")
     trending_df = trending_df.rename(columns={
         "title": "Title",
         "score_change": "➕",
@@ -185,5 +187,3 @@ if __name__ == "__main__":
     'Computer Graphics & Image Processing']
 
     print(trending_stories_table(engine, "hour", topics))
-
-    # 'Web Development & Browser Technologies',
