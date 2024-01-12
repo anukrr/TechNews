@@ -139,8 +139,6 @@ def generate_html_string(dict_of_summary: list[dict], df) -> str:
             <td height="8" style="background-color: #F0F8FF;">
             </td>
             </tr>
-    <img src="full-stack.jpg" alt="full-stack" style="width:200px;height:100px;">
-    <link rel="icon" href="full-stack.png">
     <h1> Daily Brief</h1>
     <h1 style="color:#5F9EA0">Top Stories</h1>"""
 
@@ -159,16 +157,15 @@ def generate_html_string(dict_of_summary: list[dict], df) -> str:
         story_url = df.loc[i].get('story_url')
         # corrected_date = creation_date.strftime("%d/%m/%Y")
 
-        article_box = f"""<body style="border-width:3px; border-style:solid; border-color:#E6E6FA; border-radius: 12px; padding: 20px; border-spacing: 10px 2em;">
+        article_box = f"""<div style="border-width:3px; border-style:solid; border-color:#E6E6FA; border-radius: 12px; padding: 20px; border-spacing: 10px 2em; margin: 10px">
         <h2 style="color: #008B8B;"> {title}</h2>
         <p style="color:#6495ED"> {summary} </p>
         <div>
         <p style="margin-bottom:0;">
             <a href="{story_url}"> Read Article </a> |
             <a"> {creation_date} </a> |
-            <a href=""> source </a>
             </div>
-            </body>"""
+            </div>"""
         articles_list.append(article_box)
     articles_string = " ".join(articles_list)
     html_full = html_start + articles_string + html_end
@@ -212,16 +209,10 @@ def send_email(html_string: str):
     return response
 
 
-# def handler(event=None, context=None):
-#     """Handler function."""
-#     load_dotenv()
-#     summaries_dict = generate_summaries_dict()
-#     df = load_stories_data()
-#     html_str = generate_html_string(summaries_dict, df)
-#     return send_email(html_str)
-
-load_dotenv()
-summaries_dict = generate_summaries_dict()
-df = load_stories_data()
-html_str = generate_html_string(summaries_dict, df)
-send_email(html_str)
+def handler(event=None, context=None):
+    """Handler function."""
+    load_dotenv()
+    summaries_dict = generate_summaries_dict()
+    df = load_stories_data()
+    html_str = generate_html_string(summaries_dict, df)
+    return send_email(html_str)
