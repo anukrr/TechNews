@@ -38,7 +38,7 @@ def get_db_connection():
     except OSError as e:
         return {'error': f'{e},Unable to connect to the database.'}
 
-    except exc.SQLAlchemyError as e: 
+    except exc.SQLAlchemyError as e:
         return {'error': f'{e}, unable to connect to the database'}
 
 
@@ -52,25 +52,30 @@ def show_flashpoints(connection):
     with col1:
         timeframe = st.selectbox("Filter", ["1 Hour","6 Hours","24 Hours"])
 
-        average_df = pd.read_sql(RECENT_AVERAGE_SCORE.format(f"'{timeframe}'"), connection)
-        prev_average_df = pd.read_sql(PREVIOUS_AVERAGE_SCORE.format(f"'{timeframe}'", f"'{timeframe}'"), connection)
+        average_df = pd.read_sql(
+            RECENT_AVERAGE_SCORE.format(f"'{timeframe}'"), connection)
+        prev_average_df = pd.read_sql(
+            PREVIOUS_AVERAGE_SCORE.format(f"'{timeframe}'", f"'{timeframe}'"), connection)
         avg = int(average_df["avg"].iloc[0])
         prev_avg = int(prev_average_df["avg"].iloc[0])
 
         median_df = pd.read_sql(RECENT_MEDIAN_SCORE.format(f"'{timeframe}'"), connection)
-        prev_median_df = pd.read_sql(PREVIOUS_MEDIAN_SCORE.format(f"'{timeframe}'", f"'{timeframe}'"), connection)
+        prev_median_df = pd.read_sql(
+            PREVIOUS_MEDIAN_SCORE.format(f"'{timeframe}'", f"'{timeframe}'"), connection)
         med = int(median_df["median_score"].iloc[0])
         prev_med = int(prev_median_df["median_score"].iloc[0])
 
-        new_entries_df = pd.read_sql(RECENT_NEW_ENTRIES.format(f"'{timeframe}'"), connection)
-        prev_entries_df = pd.read_sql(PREVIOUS_NEW_ENTRIES.format(f"'{timeframe}'", f"'{timeframe}'"), connection)
+        new_entries_df = pd.read_sql(
+            RECENT_NEW_ENTRIES.format(f"'{timeframe}'"), connection)
+        prev_entries_df = pd.read_sql(
+            PREVIOUS_NEW_ENTRIES.format(f"'{timeframe}'", f"'{timeframe}'"), connection)
         new_movers = int(new_entries_df["unique_story_count"].iloc[0])
         prev_movers = int(prev_entries_df["unique_story_count"].iloc[0])
 
     col2.metric("Average Story Votes", avg, avg - prev_avg)
     col3.metric("Median Story Votes", med, med - prev_med)
     col4.metric("Brand New Entries", new_movers, new_movers - prev_movers)
-    
+
 
 def show_comments_line_chart(connection):
     """Returns a reading table with top 5 longest"""
@@ -198,7 +203,9 @@ def show_long_lived_stories(connection):
 
 
 def show_votes_by_hour(connection):
-    
+    """Returns an Altair chart showing all the votes of all
+    stories per hour
+    """
     st.markdown("### Total Votes Every Hour - All Stories",)
 
     df = pd.read_sql(VOTES_BY_HOUR, connection)
@@ -246,4 +253,3 @@ if __name__ == "__main__":
 
         st.divider()
         show_votes_by_hour(conn)
-

@@ -38,7 +38,7 @@ if __name__ == "__main__":
 
     st.title('Analysis')
     st.subheader('URL NLP')
-    st.markdown("##### Use our tool to find out what people really feel about a topic! ",)
+    st.markdown("##### Use our tool to find out what people really feel about a story! ",)
 
     st.divider()
     url = st.text_input('Enter a URL')
@@ -47,14 +47,12 @@ if __name__ == "__main__":
         st.write('Article', url)
         INPUT_STORY_ID = get_story_id_from_url(url)
 
-        st.header('Comment analysis on this story')
-
-        st.subheader('How people feel about this story.')
-        st.divider()
-
         st.write("Sentiment for this story:")
         make_gauge_chart(INPUT_STORY_ID)
 
-        st.subheader('Most discussed comments', divider='rainbow')
+        st.subheader('Most discussed comments')
         st.write("Check out the top talking points for this story:")
         make_expander(INPUT_STORY_ID)
+
+    else:
+        st.write("Waiting for a story...")

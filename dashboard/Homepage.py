@@ -27,11 +27,13 @@ def get_db_connection():
     except OSError as e:
         return {'error': f'{e},Unable to connect to the database.'}
 
-    except exc.SQLAlchemyError as e: 
+    except exc.SQLAlchemyError as e:
         return {'error': f'{e}, unable to connect to the database'}
 
 
-def create_marquee(connection, topics):
+def create_marquee(connection, topics: list[str]):
+    """Creates a marquee going across homepage."""
+
     marquee_trending  = trending_stories_table(connection, "hour", topics)
     streamlit_marquee(**{
         'background': "#005864",
@@ -44,19 +46,24 @@ def create_marquee(connection, topics):
         })
 
 
-def show_top_stories(data: pd.DataFrame, topics: list):
+def show_top_stories(data: pd.DataFrame, topics: list, timeframe):
+    """Creates data table showing top stories within database."""
+
     top_scores = top_stories_table(data, topics)
 
-    st.markdown("### ⚡ Top Stories", unsafe_allow_html=False, help="Stories are ranked based on their total score.")
+    st.markdown("### ⚡ Top Stories", unsafe_allow_html=False,
+                help="Stories are ranked based on their total score.")
     st.markdown(f"##### In the past {timeframe}")
     st.dataframe(top_scores.style,
                     use_container_width=True,
                     hide_index=True,
                     height=175,
                     column_config={"🔗": st.column_config.LinkColumn()})
-    
+
 
 def show_trending_stories(connection, chosen_timeframe, topics):
+    """Creates data table showing trending stories within database."""
+
     st.markdown("### 📈 Trending Stories",
             unsafe_allow_html=False,
                 help="Stories are ranked by their score increase over a given timeframe.")
@@ -96,10 +103,11 @@ if __name__ == "__main__":
     create_marquee(conn, selected_topics)
 
     st.image("full-stack.png", width=500)
-    st.markdown("##### *Stay ahead of the curve with the latest tech news & trends*", unsafe_allow_html=False, help=None)
+    st.markdown("##### *Stay ahead of the curve with the latest tech news & trends*",
+                unsafe_allow_html=False, help=None)
     st.title('Homepage')
 
-    show_top_stories(all_data, selected_topics)
+    show_top_stories(all_data, selected_topics, timeframe)
 
     show_trending_stories(conn, timeframe, selected_topics)
 
@@ -108,7 +116,7 @@ if __name__ == "__main__":
     col1, col2 = st.columns([3,3])
 
     with col1:
-        
+
         topic_piechart(all_data, timeframe)
 
     with col2:

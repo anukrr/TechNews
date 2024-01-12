@@ -1,5 +1,4 @@
 """Helper script containing for functions for sentiment gauge plot (comment analysis)."""
-
 import requests
 from textblob import TextBlob
 import plotly.graph_objects as go
@@ -80,11 +79,3 @@ def make_gauge_chart(input_story_id: int):
     value = get_story_sentiment(input_story_id)
     fig = generate_sentiment_gauge(value)
     return st.plotly_chart(fig)
-
-
-if __name__ == "__main__":
-
-    STORY_ID = 38865518
-
-    st.title('Test gauge helper file \n')
-    make_gauge_chart(STORY_ID)
