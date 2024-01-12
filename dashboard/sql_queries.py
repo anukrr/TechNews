@@ -7,7 +7,7 @@ LONGEST_LASTING_DF = """
     JOIN topics t ON s.topic_id = t.topic_id
     GROUP BY r.story_id, s.title, t.name
     ORDER BY longest_stories DESC
-    LIMIT 10;
+    LIMIT 5;
     """
 
 COMMENTS = """SELECT story_id, comments, record_time FROM records;"""
@@ -29,7 +29,7 @@ ORDER BY all_stories_total_votes DESC
 LIMIT 5;
 """
 
-NEW_ENTRIES = """SELECT
+RECENT_NEW_ENTRIES = """SELECT
     COUNT(DISTINCT story_id) AS unique_story_count
 FROM records r1
 WHERE NOT EXISTS (
@@ -39,17 +39,41 @@ WHERE NOT EXISTS (
       AND r2.record_time < NOW() - INTERVAL {}
 );"""
 
+PREVIOUS_NEW_ENTRIES = """SELECT
+    COUNT(DISTINCT story_id) AS unique_story_count
+FROM records r1
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM records r2
+    WHERE r1.story_id = r2.story_id
+      AND r2.record_time < (NOW() - INTERVAL {}) - INTERVAL {}
+);"""
 
-LAST_HOUR_AVERAGE_SCORE = """WITH latest_scores AS (
+
+
+RECENT_AVERAGE_SCORE = """WITH latest_scores AS (
 SELECT * from records
 WHERE record_time >= NOW() - INTERVAL {})
 SELECT AVG(score) FROM latest_scores
 ;
 """
 
-LAST_HOUR_MEDIAN_SCORE = """WITH latest_scores AS (
+PREVIOUS_AVERAGE_SCORE = """WITH latest_scores AS (
+SELECT * from records
+WHERE record_time >= (NOW() - INTERVAL {}) - INTERVAL {})
+SELECT AVG(score) FROM latest_scores
+;
+"""
+
+RECENT_MEDIAN_SCORE = """WITH latest_scores AS (
 SELECT * from records
 WHERE record_time >= NOW() - INTERVAL {})
+SELECT PERCENTILE_CONT(0.5) WITHIN GROUP(ORDER BY score) AS median_score FROM latest_scores;
+"""
+
+PREVIOUS_MEDIAN_SCORE = """WITH latest_scores AS (
+SELECT * from records
+WHERE record_time >= (NOW() - INTERVAL {}) - INTERVAL {})
 SELECT PERCENTILE_CONT(0.5) WITHIN GROUP(ORDER BY score) AS median_score FROM latest_scores;
 """
 
@@ -67,5 +91,15 @@ WHERE r.story_id IN (
 )
 ORDER BY r.story_id, r.record_time;"""
 
-# timeframe = st.selectbox("Filter", ["Last Hour","Last 6 Hours","Last 24 Hours"])
-#         if timeframe ==  
+
+VOTES_BY_HOUR = """
+    SELECT
+        EXTRACT(HOUR FROM record_time) AS hour_of_day,
+        SUM(score) AS total_votes
+    FROM
+        records
+    GROUP BY
+        hour_of_day
+    ORDER BY
+        total_votes DESC;
+    """

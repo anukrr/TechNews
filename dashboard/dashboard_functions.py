@@ -64,7 +64,7 @@ def top_stories_table(dataframe: pd.DataFrame, topics: list) -> pd.DataFrame:
     return max_scores
 
 
-def top_comments_table(dataframe: pd.DataFrame, topics: list) -> pd.DataFrame:
+def top_comments_table(dataframe: pd.DataFrame, topics: list, timeframe) -> pd.DataFrame:
     """Finds the stories with the highest comment count."""
     dataframe = dataframe[dataframe["name"].isin(topics)]
     idx = dataframe.groupby("story_id")["comments"].idxmax()
@@ -78,6 +78,14 @@ def top_comments_table(dataframe: pd.DataFrame, topics: list) -> pd.DataFrame:
         "story_url": "🔗",
         "name": "Topic"
     })
+    st.markdown("### 💬 Causing a Discussion",
+                help="Stories are ranked by their comment count.")
+    st.markdown(f"##### In the past {timeframe}")
+    st.dataframe(max_comments,
+                 use_container_width=True,
+                 hide_index=True,
+                 height=300,
+                 column_config={"🔗": st.column_config.LinkColumn()})
     return max_comments.sort_values("💬", ascending=False).head(20)
 
 
@@ -124,7 +132,7 @@ def topic_table(dataframe: pd.DataFrame) -> pd.DataFrame:
     return rankings[["score"]].sort_values("score", ascending=False)
 
 
-def topic_piechart(dataframe: pd.DataFrame):
+def topic_piechart(dataframe: pd.DataFrame, timeframe):
     """Creates a piechart showing score distribution for topics."""
     rankings = dataframe.groupby("name").sum().reset_index()
     rankings = rankings[["name","score"]].sort_values("score", ascending=False)
@@ -133,9 +141,13 @@ def topic_piechart(dataframe: pd.DataFrame):
                                                                                                                           orient="right",
                                                                                                                           titleFontSize=0,
                                                                                                                           labelFontSize=10,
-                                                                                                                          labelLimit=0,
-                                                                                                                          labelColor="black"))
+                                                                                                                          labelLimit=0,                                                                                           labelColor="black"))
     piechart = piechart.properties(width=250, height=350)
+    st.markdown("### 🔥 Hot Topics",
+                help="Proportion of scores given for each topic.")
+    st.markdown(f"##### In the past {timeframe}")
+    st.altair_chart(piechart,
+                    use_container_width=True)
 
     return piechart
 

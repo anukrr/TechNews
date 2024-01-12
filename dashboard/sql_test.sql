@@ -39,6 +39,11 @@ WHERE record_time >= NOW() - INTERVAL '1 hour')
 SELECT AVG(score) FROM latest_scores
 ;
 
+WITH latest_scores AS (
+SELECT * from records
+WHERE record_time >= (NOW() - INTERVAL '24 Hours') - INTERVAL '24 Hours')
+SELECT AVG(score) FROM latest_scores
+;
 
     -- Median all time
 WITH AverageScores AS (
@@ -238,3 +243,10 @@ WHERE first_record_time >= NOW() - INTERVAL '24 hours';
 
 
 
+
+
+WITH latest_scores AS (
+SELECT * from records
+WHERE record_time >= NOW() - INTERVAL '24 Hours')
+SELECT AVG(score) FROM latest_scores
+;
