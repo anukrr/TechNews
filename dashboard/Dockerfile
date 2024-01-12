@@ -10,4 +10,4 @@ RUN bash setup_nlp.sh
 
 EXPOSE 8501
 
-CMD ["streamlit", "run", "Dashboard.py"]
+CMD ["streamlit", "run", "Homepage.py"]
