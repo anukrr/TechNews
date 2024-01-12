@@ -19,8 +19,3 @@ This repository contains several directories, each with a specific functionality
 
 Each repository contains a `README.md` file with instructions for that specific repository.
 
-## Architecture Diagram
-
-Here is the outline of our architecture.
-
-!["architecture-diagram"]("/architecture.png")
