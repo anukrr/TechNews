@@ -21,4 +21,6 @@ Each repository contains a `README.md` file with instructions for that specific 
 
 ## Architecture Diagram
 
+Here is the outline of our architecture.
+
 !["architecture-diagram"]("fullstack-architecture-min.png")
