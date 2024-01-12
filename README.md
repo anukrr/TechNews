@@ -19,6 +19,3 @@ This repository contains several directories, each with a specific functionality
 
 Each repository contains a `README.md` file with instructions for that specific repository.
 
-## Architecture Diagram
-
-!["architecture-diagram"]("fullstack-architecture-min.png")
